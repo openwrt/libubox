@@ -32,6 +32,7 @@
 
 const char *usock_port(int port);
 int usock(int type, const char *host, const char *service);
+int usock_inet(int type, const char *host, const char *service, void *addr);
 
 /**
  * Wait for a socket to become ready.

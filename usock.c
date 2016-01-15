@@ -66,9 +66,11 @@ static int usock_connect(int type, struct sockaddr *sa, int sa_len, int family, 
 	return -1;
 }
 
-static int usock_unix(int type, const char *host, int socktype, bool server)
+static int usock_unix(int type, const char *host)
 {
 	struct sockaddr_un sun = {.sun_family = AF_UNIX};
+	bool server = !!(type & USOCK_SERVER);
+	int socktype = ((type & 0xff) == USOCK_TCP) ? SOCK_STREAM : SOCK_DGRAM;
 
 	if (strlen(host) >= sizeof(sun.sun_path)) {
 		errno = EINVAL;
@@ -79,8 +81,10 @@ static int usock_unix(int type, const char *host, int socktype, bool server)
 	return usock_connect(type, (struct sockaddr*)&sun, sizeof(sun), AF_UNIX, socktype, server);
 }
 
-static int usock_inet(int type, const char *host, const char *service, int socktype, bool server)
+int usock_inet(int type, const char *host, const char *service, void *addr)
 {
+	int socktype = ((type & 0xff) == USOCK_TCP) ? SOCK_STREAM : SOCK_DGRAM;
+	bool server = !!(type & USOCK_SERVER);
 	struct addrinfo *result, *rp;
 	struct addrinfo hints = {
 		.ai_family = (type & USOCK_IPV6ONLY) ? AF_INET6 :
@@ -97,8 +101,11 @@ static int usock_inet(int type, const char *host, const char *service, int sockt
 
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
 		sock = usock_connect(type, rp->ai_addr, rp->ai_addrlen, rp->ai_family, socktype, server);
-		if (sock >= 0)
+		if (sock >= 0) {
+			if (addr)
+				memcpy(addr, rp->ai_addr, rp->ai_addrlen);
 			break;
+		}
 	}
 
 	freeaddrinfo(result);
@@ -118,14 +125,12 @@ const char *usock_port(int port)
 }
 
 int usock(int type, const char *host, const char *service) {
-	int socktype = ((type & 0xff) == USOCK_TCP) ? SOCK_STREAM : SOCK_DGRAM;
-	bool server = !!(type & USOCK_SERVER);
 	int sock;
 
 	if (type & USOCK_UNIX)
-		sock = usock_unix(type, host, socktype, server);
+		sock = usock_unix(type, host);
 	else
-		sock = usock_inet(type, host, service, socktype, server);
+		sock = usock_inet(type, host, service, NULL);
 
 	if (sock < 0)
 		return -1;
