@@ -257,6 +257,32 @@ static int ul_ufd_add(lua_State *L)
 	return 1;
 }
 
+static int ul_process_free(lua_State *L)
+{
+	struct lua_uloop_process *proc = lua_touserdata(L, 1);
+
+	/* obj.__index.__gc = nil , make sure executing only once*/
+	lua_getfield(L, -1, "__index");
+	lua_pushstring(L, "__gc");
+	lua_pushnil(L);
+	lua_settable(L, -3);
+
+	if (proc->r != LUA_NOREF) {
+		uloop_process_delete(&proc->p);
+
+		lua_getglobal(state, "__uloop_cb");
+		luaL_unref(state, -1, proc->r);
+		lua_remove(state, -1);
+	}
+
+	return 1;
+}
+
+static const luaL_Reg process_m[] = {
+	{ "delete", ul_process_free },
+	{ NULL, NULL }
+};
+
 static void ul_process_cb(struct uloop_process *p, int ret)
 {
 	struct lua_uloop_process *proc = container_of(p, struct lua_uloop_process, p);
@@ -265,6 +291,7 @@ static void ul_process_cb(struct uloop_process *p, int ret)
 	lua_rawgeti(state, -1, proc->r);
 
 	luaL_unref(state, -2, proc->r);
+	proc->r = LUA_NOREF;
 	lua_remove(state, -2);
 	lua_pushinteger(state, ret >> 8);
 	lua_call(state, 1, 0);
@@ -324,9 +351,7 @@ static int ul_process(lua_State *L)
 	lua_pushvalue(L, -2);
 	ref = luaL_ref(L, -2);
 
-	proc = lua_newuserdata(L, sizeof(*proc));
-	memset(proc, 0, sizeof(*proc));
-
+	proc = ul_create_userdata(L, sizeof(*proc), process_m, ul_process_free);
 	proc->r = ref;
 	proc->p.pid = pid;
 	proc->p.cb = ul_process_cb;
