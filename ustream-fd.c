@@ -62,7 +62,7 @@ static void ustream_fd_read_pending(struct ustream_fd *sf, bool *more)
 			if (errno == EINTR)
 				continue;
 
-			if (errno == EAGAIN)
+			if (errno == EAGAIN || errno == ENOTCONN)
 				return;
 
 			len = 0;
@@ -96,7 +96,7 @@ static int ustream_fd_write(struct ustream *s, const char *buf, int buflen, bool
 			if (errno == EINTR)
 				continue;
 
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
+			if (errno == EAGAIN || errno == EWOULDBLOCK || errno == ENOTCONN)
 				break;
 
 			return -1;
