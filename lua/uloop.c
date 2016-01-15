@@ -43,6 +43,26 @@ struct lua_uloop_process {
 
 static lua_State *state;
 
+static void *
+ul_create_userdata(lua_State *L, size_t size, const luaL_Reg *reg, lua_CFunction gc)
+{
+	void *ret = lua_newuserdata(L, size);
+
+	memset(ret, 0, size);
+	lua_createtable(L, 0, 2);
+	lua_pushvalue(L, -1);
+	lua_setfield(L, -2, "__index");
+	lua_pushcfunction(L, gc);
+	lua_setfield(L, -2, "__gc");
+	lua_pushvalue(L, -1);
+	lua_setmetatable(L, -3);
+	lua_pushvalue(L, -2);
+	luaI_openlib(L, NULL, reg, 1);
+	lua_pushvalue(L, -2);
+
+	return ret;
+}
+
 static void ul_timer_cb(struct uloop_timeout *t)
 {
 	struct lua_uloop_timeout *tout = container_of(t, struct lua_uloop_timeout, t);
@@ -77,9 +97,9 @@ static int ul_timer_set(lua_State *L)
 static int ul_timer_free(lua_State *L)
 {
 	struct lua_uloop_timeout *tout = lua_touserdata(L, 1);
-	
+
 	uloop_timeout_cancel(&tout->t);
-	
+
 	/* obj.__index.__gc = nil , make sure executing only once*/
 	lua_getfield(L, -1, "__index");
 	lua_pushstring(L, "__gc");
@@ -120,22 +140,10 @@ static int ul_timer(lua_State *L)
 	lua_pushvalue(L, -2);
 	ref = luaL_ref(L, -2);
 
-	tout = lua_newuserdata(L, sizeof(*tout));
-	lua_createtable(L, 0, 2);
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -2, "__index");
-	lua_pushcfunction(L, ul_timer_free);
-	lua_setfield(L, -2, "__gc");
-	lua_pushvalue(L, -1);
-	lua_setmetatable(L, -3);
-	lua_pushvalue(L, -2);
-	luaI_openlib(L, NULL, timer_m, 1);
-	lua_pushvalue(L, -2);
-
-	memset(tout, 0, sizeof(*tout));
-
+	tout = ul_create_userdata(L, sizeof(*tout), timer_m, ul_timer_free);
 	tout->r = ref;
 	tout->t.cb = ul_timer_cb;
+
 	if (set)
 		uloop_timeout_set(&tout->t, set);
 
@@ -181,7 +189,7 @@ static int get_sock_fd(lua_State* L, int idx) {
 static int ul_ufd_delete(lua_State *L)
 {
 	struct lua_uloop_fd *ufd = lua_touserdata(L, 1);
-	
+
 	uloop_fd_delete(&ufd->fd);
 
 	/* obj.__index.__gc = nil , make sure executing only once*/
@@ -238,21 +246,7 @@ static int ul_ufd_add(lua_State *L)
 	fd_ref = luaL_ref(L, -2);
 	lua_pop(L, 1);
 
-	ufd = lua_newuserdata(L, sizeof(*ufd));
-
-	lua_createtable(L, 0, 2);
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -2, "__index");
-	lua_pushcfunction(L, ul_ufd_delete);
-	lua_setfield(L, -2, "__gc");
-	lua_pushvalue(L, -1);
-	lua_setmetatable(L, -3);
-	lua_pushvalue(L, -2);
-	luaI_openlib(L, NULL, ufd_m, 1);
-	lua_pushvalue(L, -2);
-
-	memset(ufd, 0, sizeof(*ufd));
-
+	ufd = ul_create_userdata(L, sizeof(*ufd), ufd_m, ul_ufd_delete);
 	ufd->r = ref;
 	ufd->fd.fd = fd;
 	ufd->fd_r = fd_ref;
