@@ -28,8 +28,10 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <poll.h>
 
 #include "usock.h"
+#include "utils.h"
 
 static void usock_set_flags(int sock, unsigned int type)
 {
@@ -81,7 +83,59 @@ static int usock_unix(int type, const char *host)
 	return usock_connect(type, (struct sockaddr*)&sun, sizeof(sun), AF_UNIX, socktype, server);
 }
 
-int usock_inet(int type, const char *host, const char *service, void *addr)
+static int
+usock_inet_notimeout(int type, struct addrinfo *result, void *addr)
+{
+	struct addrinfo *rp;
+	int socktype = ((type & 0xff) == USOCK_TCP) ? SOCK_STREAM : SOCK_DGRAM;
+	bool server = !!(type & USOCK_SERVER);
+	int sock;
+
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		sock = usock_connect(type, rp->ai_addr, rp->ai_addrlen, rp->ai_family, socktype, server);
+		if (sock >= 0) {
+			if (addr)
+				memcpy(addr, rp->ai_addr, rp->ai_addrlen);
+			return sock;
+		}
+	}
+
+	return -1;
+}
+
+static int poll_restart(struct pollfd *fds, int nfds, int timeout)
+{
+	struct timespec ts, cur;
+	int msec = timeout % 1000;
+	int ret;
+
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	ts.tv_nsec += msec * 1000000;
+	if (ts.tv_nsec > 1000000000) {
+		ts.tv_sec++;
+		ts.tv_nsec -= 1000000000;
+	}
+	ts.tv_sec += timeout / 1000;
+
+	while (1) {
+		ret = poll(fds, nfds, timeout);
+		if (ret == EAGAIN)
+			continue;
+
+		if (ret != EINTR)
+			return ret;
+
+		clock_gettime(CLOCK_MONOTONIC, &cur);
+		timeout = (ts.tv_sec - cur.tv_sec) * 1000;
+		timeout += (ts.tv_nsec - cur.tv_nsec) / 1000000;
+		if (timeout <= 0)
+			return 0;
+	}
+}
+
+int usock_inet_timeout(int type, const char *host, const char *service,
+		       void *addr, int timeout)
 {
 	int socktype = ((type & 0xff) == USOCK_TCP) ? SOCK_STREAM : SOCK_DGRAM;
 	bool server = !!(type & USOCK_SERVER);
@@ -94,20 +148,94 @@ int usock_inet(int type, const char *host, const char *service, void *addr)
 			| ((type & USOCK_SERVER) ? AI_PASSIVE : 0)
 			| ((type & USOCK_NUMERIC) ? AI_NUMERICHOST : 0),
 	};
+	struct addrinfo *rp_v6 = NULL;
+	struct addrinfo *rp_v4 = NULL;
+	struct pollfd pfds[2] = {
+	    { .fd = -1, .events = POLLOUT },
+	    { .fd = -1, .events = POLLOUT },
+	};
 	int sock = -1;
+	int i;
 
 	if (getaddrinfo(host, service, &hints, &result))
 		return -1;
 
+	if (timeout <= 0 || server) {
+		sock = usock_inet_notimeout(type, result, addr);
+		goto free_addrinfo;
+	}
+
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
-		sock = usock_connect(type, rp->ai_addr, rp->ai_addrlen, rp->ai_family, socktype, server);
-		if (sock >= 0) {
-			if (addr)
-				memcpy(addr, rp->ai_addr, rp->ai_addrlen);
-			break;
+		if (rp->ai_family == AF_INET6 && !rp_v6)
+			rp_v6 = rp;
+		if (rp->ai_family == AF_INET && !rp_v4)
+			rp_v4 = rp;
+	}
+
+	if (!rp_v6 && !rp_v4)
+		goto out;
+
+	if (rp_v6) {
+		rp = rp_v6;
+		pfds[0].fd = usock_connect(type | USOCK_NONBLOCK, rp->ai_addr,
+					   rp->ai_addrlen, rp->ai_family,
+					   socktype, server);
+		if (pfds[0].fd < 0) {
+			rp_v6 = NULL;
+			goto try_v4;
+		}
+
+		if (timeout > 300) {
+			if (poll_restart(pfds, 1, 300) == 1) {
+				rp = rp_v6;
+				sock = pfds[0].fd;
+				goto out;
+			}
+		}
+		timeout -= 300;
+	}
+
+try_v4:
+	if (rp_v4) {
+		rp = rp_v4;
+		pfds[1].fd = usock_connect(type | USOCK_NONBLOCK, rp->ai_addr,
+						 rp->ai_addrlen, rp->ai_family,
+						 socktype, server);
+		if (pfds[1].fd < 0) {
+			rp_v4 = NULL;
+			if (!rp_v6)
+				goto out;
+			goto wait;
 		}
 	}
 
+wait:
+	poll_restart(pfds + !rp_v6, !!rp_v6 + !!rp_v4, timeout);
+	if (pfds[0].revents & POLLOUT) {
+		rp = rp_v6;
+		sock = pfds[0].fd;
+		goto out;
+	}
+
+	if (pfds[1].revents & POLLOUT) {
+		rp = rp_v4;
+		sock = pfds[1].fd;
+		goto out;
+	}
+
+out:
+	for (i = 0; i < 2; i++) {
+		int fd = pfds[i].fd;
+		if (fd >= 0 && fd != sock)
+			close(fd);
+	}
+
+	if (!(type & USOCK_NONBLOCK))
+		fcntl(sock, F_SETFL, fcntl(sock, F_GETFL) & ~O_NONBLOCK);
+
+	if (addr && sock >= 0)
+		memcpy(addr, rp->ai_addr, rp->ai_addrlen);
+free_addrinfo:
 	freeaddrinfo(result);
 	return sock;
 }
