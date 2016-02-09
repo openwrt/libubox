@@ -49,9 +49,6 @@ bool blobmsg_add_json_element(struct blob_buf *b, const char *name, json_object 
 	bool ret = true;
 	void *c;
 
-	if (!obj)
-		return false;
-
 	switch (json_object_get_type(obj)) {
 	case json_type_object:
 		c = blobmsg_open_table(b, name);
@@ -71,6 +68,9 @@ bool blobmsg_add_json_element(struct blob_buf *b, const char *name, json_object 
 		break;
 	case json_type_int:
 		blobmsg_add_u32(b, name, json_object_get_int(obj));
+		break;
+	case json_type_null:
+		blobmsg_add_field(b, BLOBMSG_TYPE_UNSPEC, name, NULL, 0);
 		break;
 	default:
 		return false;
