@@ -16,10 +16,10 @@ static void handle_command(struct json_script_ctx *ctx, const char *name,
 	struct blob_attr *cur;
 	int rem;
 
-	fprintf(stderr, "Command: %s", name);
+	fprintf(stdout, "%s", name);
 	blobmsg_for_each_attr(cur, data, rem)
-		fprintf(stderr, " %s", (char *) blobmsg_data(cur));
-	fprintf(stderr, "\n");
+		fprintf(stdout, " %s", (char *) blobmsg_data(cur));
+	fprintf(stdout, "\n");
 }
 
 static struct json_script_file *
