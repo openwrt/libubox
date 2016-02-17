@@ -32,6 +32,7 @@ struct json_handler {
 
 static int json_process_expr(struct json_call *call, struct blob_attr *cur);
 static int json_process_cmd(struct json_call *call, struct blob_attr *cur);
+static int eval_string(struct json_call *call, struct blob_buf *buf, const char *name, const char *pattern);
 
 struct json_script_file *
 json_script_file_from_blobmsg(const char *name, void *data, int len)
@@ -345,6 +346,30 @@ static int handle_expr_not(struct json_call *call, struct blob_attr *expr)
 	return !ret;
 }
 
+static int handle_expr_isdir(struct json_call *call, struct blob_attr *expr)
+{
+	static struct blob_buf b;
+	struct blob_attr *tb[3];
+	const char *pattern, *path;
+	struct stat s;
+	int ret;
+
+	json_get_tuple(expr, tb, BLOBMSG_TYPE_STRING, 0);
+	if (!tb[1] || blobmsg_type(tb[1]) != BLOBMSG_TYPE_STRING)
+		return -1;
+	pattern = blobmsg_data(tb[1]);
+
+	blob_buf_init(&b, 0);
+	ret = eval_string(call, &b, NULL, pattern);
+	if (ret < 0)
+		return ret;
+	path = blobmsg_data(blob_data(b.head));
+	ret = stat(path, &s);
+	if (ret < 0)
+		return 0;
+	return S_ISDIR(s.st_mode);
+}
+
 static const struct json_handler expr[] = {
 	{ "eq", handle_expr_eq },
 	{ "regex", handle_expr_regex },
@@ -352,6 +377,7 @@ static const struct json_handler expr[] = {
 	{ "and", handle_expr_and },
 	{ "or", handle_expr_or },
 	{ "not", handle_expr_not },
+	{ "isdir", handle_expr_isdir },
 };
 
 static int

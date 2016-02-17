@@ -27,6 +27,11 @@
     [ "exec_if_or", "%ORVAR%" ]
   ],
 
+  [ "if",
+	[ "isdir", "%ISDIRVAR%" ],
+	[ "exec_isdir", "%ISDIRVAR%" ]
+  ],
+
   [ "return", "foobar" ],
 
   [ "exec_non_reachable", "Arghhh" ]
