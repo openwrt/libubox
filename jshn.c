@@ -27,17 +27,24 @@
 #include <getopt.h>
 #include "list.h"
 
+#include "avl.h"
 #include "blob.h"
 #include "blobmsg_json.h"
 
 #define MAX_VARLEN	256
 
+static struct avl_tree env_vars;
 static struct blob_buf b = { 0 };
 
 static const char *var_prefix = "";
 static int var_prefix_len = 0;
 
 static int add_json_element(const char *key, json_object *obj);
+
+struct env_var {
+	struct avl_node avl;
+	char *val;
+};
 
 static int add_json_object(json_object *obj)
 {
@@ -175,13 +182,19 @@ static int jshn_parse(const char *str)
 	return 0;
 }
 
+static char *getenv_avl(const char *key)
+{
+	struct env_var *var = avl_find_element(&env_vars, key, var, avl);
+	return var ? var->val : NULL;
+}
+
 static char *get_keys(const char *prefix)
 {
 	char *keys;
 
 	keys = alloca(var_prefix_len + strlen(prefix) + sizeof("K_") + 1);
 	sprintf(keys, "%sK_%s", var_prefix, prefix);
-	return getenv(keys);
+	return getenv_avl(keys);
 }
 
 static void get_var(const char *prefix, const char **name, char **var, char **type)
@@ -191,13 +204,13 @@ static void get_var(const char *prefix, const char **name, char **var, char **ty
 	tmpname = alloca(var_prefix_len + strlen(prefix) + 1 + strlen(*name) + 1 + sizeof("T_"));
 
 	sprintf(tmpname, "%s%s_%s", var_prefix, prefix, *name);
-	*var = getenv(tmpname);
+	*var = getenv_avl(tmpname);
 
 	sprintf(tmpname, "%sT_%s_%s", var_prefix, prefix, *name);
-	*type = getenv(tmpname);
+	*type = getenv_avl(tmpname);
 
 	sprintf(tmpname, "%sN_%s_%s", var_prefix, prefix, *name);
-	varname = getenv(tmpname);
+	varname = getenv_avl(tmpname);
 	if (varname)
 		*name = varname;
 }
@@ -291,11 +304,51 @@ static int usage(const char *progname)
 	return 2;
 }
 
+static int avl_strcmp_var(const void *k1, const void *k2, void *ptr)
+{
+	const char *s1 = k1;
+	const char *s2 = k2;
+	char c1, c2;
+
+	while (*s1 && *s1 == *s2) {
+		s1++;
+		s2++;
+	}
+
+	c1 = *s1;
+	c2 = *s2;
+	if (c1 == '=')
+		c1 = 0;
+	if (c2 == '=')
+		c2 = 0;
+
+	return c1 - c2;
+}
+
 int main(int argc, char **argv)
 {
+	extern char **environ;
 	bool no_newline = false;
 	bool indent = false;
+	struct env_var *vars;
+	int i;
 	int ch;
+
+	avl_init(&env_vars, avl_strcmp_var, false, NULL);
+	for (i = 0; environ[i]; i++);
+
+	vars = calloc(i, sizeof(*vars));
+	for (i = 0; environ[i]; i++) {
+		char *c;
+
+		vars[i].avl.key = environ[i];
+		c = strchr(environ[i], '=');
+		if (!c)
+			continue;
+
+		vars[i].val = c + 1;
+		avl_insert(&env_vars, &vars[i].avl);
+	}
 
 	while ((ch = getopt(argc, argv, "p:nir:w")) != -1) {
 		switch(ch) {
