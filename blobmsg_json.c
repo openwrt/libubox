@@ -135,21 +135,17 @@ static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
 
 static void add_separator(struct strbuf *s)
 {
-	static char indent_chars[17] = "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-	int indent;
-	char *start;
+	const char *indent_chars = "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
+	int len;
 
 	if (!s->indent)
 		return;
 
-	indent = s->indent_level;
-	if (indent > 16)
-		indent = 16;
+	len = s->indent_level + 1;
+	if (len > strlen(indent_chars))
+		len = strlen(indent_chars);
 
-	start = &indent_chars[sizeof(indent_chars) - indent - 1];
-	*start = '\n';
-	blobmsg_puts(s, start, indent + 1);
-	*start = '\t';
+	blobmsg_puts(s, indent_chars, len);
 }
 
 
