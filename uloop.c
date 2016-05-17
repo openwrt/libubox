@@ -392,14 +392,13 @@ static void uloop_ignore_signal(int signum, bool ignore)
 
 static void uloop_setup_signals(bool add)
 {
-	static struct sigaction old_sigint, old_sigchld, old_sigterm;
+	static struct sigaction old_sigint, old_sigchld, old_sigterm, old_sigquit;
 
-	if (uloop_setup_signalfd(add))
-		return;
+	uloop_setup_signalfd(add);
 
 	uloop_install_handler(SIGINT, uloop_handle_signal, &old_sigint, add);
 	uloop_install_handler(SIGTERM, uloop_handle_signal, &old_sigterm, add);
-	uloop_install_handler(SIGQUIT, uloop_handle_signal, &old_sigterm, add);
+	uloop_install_handler(SIGQUIT, uloop_handle_signal, &old_sigquit, add);
 	uloop_install_handler(SIGCHLD, uloop_handle_signal, &old_sigchld, add);
 
 	uloop_ignore_signal(SIGPIPE, add);

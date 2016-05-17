@@ -29,6 +29,7 @@ static void
 uloop_signal_fd_cb(struct uloop_fd *fd, unsigned int events)
 {
 	struct signalfd_siginfo fdsi;
+	struct sigaction act;
 	int ret;
 
 retry:
@@ -39,7 +40,22 @@ retry:
 	if (ret != sizeof(fdsi))
 		return;
 
-	uloop_handle_signal(fdsi.ssi_signo);
+	switch (fdsi.ssi_signo) {
+	case SIGQUIT:
+	case SIGINT:
+	case SIGTERM:
+		sigaction(fdsi.ssi_signo, NULL, &act);
+		if (act.sa_handler != SIG_IGN &&
+			act.sa_handler != SIG_DFL) {
+			act.sa_handler(fdsi.ssi_signo);
+			break;
+		}
+
+		/* fall through */
+	default:
+		uloop_handle_signal(fdsi.ssi_signo);
+		break;
+	}
 }
 
 static bool
@@ -58,7 +74,7 @@ uloop_setup_signalfd(bool add)
 
 	if (!add) {
 		uloop_fd_delete(&sfd);
-		sigprocmask(SIG_SETMASK, &prev_mask, NULL);
+		sigprocmask(SIG_BLOCK, &prev_mask, NULL);
 	} else {
 		sigaddset(&mask, SIGQUIT);
 		sigaddset(&mask, SIGINT);
