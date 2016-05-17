@@ -311,6 +311,9 @@ static void uloop_handle_processes(void)
 
 	while (1) {
 		pid = waitpid(-1, &ret, WNOHANG);
+		if (pid < 0 && errno == EINTR)
+			continue;
+
 		if (pid <= 0)
 			return;
 
