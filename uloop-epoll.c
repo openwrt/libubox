@@ -58,7 +58,7 @@ uloop_setup_signalfd(bool add)
 
 	if (!add) {
 		uloop_fd_delete(&sfd);
-		sigprocmask(SIG_BLOCK, &prev_mask, NULL);
+		sigprocmask(SIG_SETMASK, &prev_mask, NULL);
 	} else {
 		sigaddset(&mask, SIGQUIT);
 		sigaddset(&mask, SIGINT);
