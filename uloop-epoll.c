@@ -16,6 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/signalfd.h>
+
 /**
  * FIXME: uClibc < 0.9.30.3 does not define EPOLLRDHUP for Linux >= 2.6.17
  */
@@ -23,8 +25,63 @@
 #define EPOLLRDHUP 0x2000
 #endif
 
+static void
+uloop_signal_fd_cb(struct uloop_fd *fd, unsigned int events)
+{
+	struct signalfd_siginfo fdsi;
+	int ret;
+
+retry:
+	ret = read(fd->fd, &fdsi, sizeof(fdsi));
+	if (ret < 0 && errno == EINTR)
+		goto retry;
+
+	if (ret != sizeof(fdsi))
+		return;
+
+	uloop_handle_signal(fdsi.ssi_signo);
+}
+
+static bool
+uloop_setup_signalfd(bool add)
+{
+	static struct uloop_fd sfd = {
+		.cb = uloop_signal_fd_cb
+	};
+	static sigset_t prev_mask;
+	sigset_t mask;
+
+	if (signal_fd < 0)
+		return false;
+
+	sigemptyset(&mask);
+
+	if (!add) {
+		uloop_fd_delete(&sfd);
+		sigprocmask(SIG_BLOCK, &prev_mask, NULL);
+	} else {
+		sigaddset(&mask, SIGQUIT);
+		sigaddset(&mask, SIGINT);
+		sigaddset(&mask, SIGTERM);
+		sigaddset(&mask, SIGCHLD);
+		sigprocmask(SIG_BLOCK, &mask, &prev_mask);
+
+		sfd.fd = signal_fd;
+		uloop_fd_add(&sfd, ULOOP_READ | ULOOP_EDGE_TRIGGER);
+	}
+
+	if (signalfd(signal_fd, &mask, SFD_NONBLOCK | SFD_CLOEXEC) < 0) {
+		sigprocmask(SIG_BLOCK, &prev_mask, NULL);
+		return false;
+	}
+
+	return true;
+}
+
 int uloop_init(void)
 {
+	sigset_t mask;
+
 	if (poll_fd >= 0)
 		return 0;
 
@@ -33,6 +90,10 @@ int uloop_init(void)
 		return -1;
 
 	fcntl(poll_fd, F_SETFD, fcntl(poll_fd, F_GETFD) | FD_CLOEXEC);
+
+	sigemptyset(&mask);
+	signal_fd = signalfd(-1, &mask, SFD_NONBLOCK | SFD_CLOEXEC);
+
 	return 0;
 }
 

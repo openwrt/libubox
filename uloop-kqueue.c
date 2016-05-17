@@ -15,6 +15,13 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+static bool
+uloop_setup_signalfd(bool add)
+{
+	return false;
+}
+
 int uloop_init(void)
 {
 	struct timespec timeout = { 0, 0 };
