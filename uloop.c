@@ -56,15 +56,12 @@ static struct uloop_fd_stack *fd_stack = NULL;
 static struct list_head timeouts = LIST_HEAD_INIT(timeouts);
 static struct list_head processes = LIST_HEAD_INIT(processes);
 
-static int signal_fd = -1;
 static int poll_fd = -1;
 bool uloop_cancelled = false;
 static bool do_sigchld = false;
 
 static struct uloop_fd_event cur_fds[ULOOP_MAX_EVENTS];
 static int cur_fd, cur_nfds;
-
-static void uloop_handle_signal(int signo);
 
 #ifdef USE_KQUEUE
 #include "uloop-kqueue.c"
@@ -331,17 +328,14 @@ static void uloop_handle_processes(void)
 
 }
 
-static void uloop_handle_signal(int signo)
+static void uloop_handle_sigint(int signo)
 {
-	switch (signo) {
-	case SIGINT:
-	case SIGQUIT:
-	case SIGTERM:
-		uloop_cancelled = true;
-		break;
-	case SIGCHLD:
-		do_sigchld = true;
-	}
+	uloop_cancelled = true;
+}
+
+static void uloop_sigchld(int signo)
+{
+	do_sigchld = true;
 }
 
 static void uloop_install_handler(int signum, void (*handler)(int), struct sigaction* old, bool add)
@@ -392,14 +386,11 @@ static void uloop_ignore_signal(int signum, bool ignore)
 
 static void uloop_setup_signals(bool add)
 {
-	static struct sigaction old_sigint, old_sigchld, old_sigterm, old_sigquit;
+	static struct sigaction old_sigint, old_sigchld, old_sigterm;
 
-	uloop_setup_signalfd(add);
-
-	uloop_install_handler(SIGINT, uloop_handle_signal, &old_sigint, add);
-	uloop_install_handler(SIGTERM, uloop_handle_signal, &old_sigterm, add);
-	uloop_install_handler(SIGQUIT, uloop_handle_signal, &old_sigquit, add);
-	uloop_install_handler(SIGCHLD, uloop_handle_signal, &old_sigchld, add);
+	uloop_install_handler(SIGINT, uloop_handle_sigint, &old_sigint, add);
+	uloop_install_handler(SIGTERM, uloop_handle_sigint, &old_sigterm, add);
+	uloop_install_handler(SIGCHLD, uloop_sigchld, &old_sigchld, add);
 
 	uloop_ignore_signal(SIGPIPE, add);
 }
@@ -486,11 +477,6 @@ void uloop_run(void)
 
 void uloop_done(void)
 {
-	if (signal_fd >= 0) {
-		close(signal_fd);
-		signal_fd = -1;
-	}
-
 	if (poll_fd < 0)
 		return;
 
