@@ -63,6 +63,8 @@ static bool do_sigchld = false;
 static struct uloop_fd_event cur_fds[ULOOP_MAX_EVENTS];
 static int cur_fd, cur_nfds;
 
+int uloop_fd_add(struct uloop_fd *sock, unsigned int flags);
+
 #ifdef USE_KQUEUE
 #include "uloop-kqueue.c"
 #endif
@@ -70,6 +72,59 @@ static int cur_fd, cur_nfds;
 #ifdef USE_EPOLL
 #include "uloop-epoll.c"
 #endif
+
+static void waker_consume(struct uloop_fd *fd, unsigned int events)
+{
+	char buf[4];
+
+	while (read(fd->fd, buf, 4) > 0)
+		;
+}
+
+static int waker_pipe = -1;
+static struct uloop_fd waker_fd = {
+	.fd = -1,
+	.cb = waker_consume,
+};
+
+static void waker_init_fd(int fd)
+{
+	fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
+	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+}
+
+static int waker_init(void)
+{
+	int fds[2];
+
+	if (waker_pipe >= 0)
+		return 0;
+
+	if (pipe(fds) < 0)
+		return -1;
+
+	waker_init_fd(fds[0]);
+	waker_init_fd(fds[1]);
+
+	waker_fd.fd = fds[0];
+	waker_fd.cb = waker_consume;
+	uloop_fd_add(&waker_fd, ULOOP_READ);
+
+	return 0;
+}
+
+int uloop_init(void)
+{
+	if (uloop_init_pollfd() < 0)
+		return -1;
+
+	if (waker_init() < 0) {
+		uloop_done();
+		return -1;
+	}
+
+	return 0;
+}
 
 static bool uloop_fd_stack_event(struct uloop_fd *fd, int events)
 {
@@ -328,14 +383,21 @@ static void uloop_handle_processes(void)
 
 }
 
+static void uloop_signal_wake(void)
+{
+	write(waker_pipe, "w", 1);
+}
+
 static void uloop_handle_sigint(int signo)
 {
 	uloop_cancelled = true;
+	uloop_signal_wake();
 }
 
 static void uloop_sigchld(int signo)
 {
 	do_sigchld = true;
+	uloop_signal_wake();
 }
 
 static void uloop_install_handler(int signum, void (*handler)(int), struct sigaction* old, bool add)
@@ -477,11 +539,17 @@ void uloop_run(void)
 
 void uloop_done(void)
 {
-	if (poll_fd < 0)
-		return;
+	if (poll_fd >= 0) {
+		close(poll_fd);
+		poll_fd = -1;
+	}
 
-	close(poll_fd);
-	poll_fd = -1;
+	if (waker_pipe >= 0) {
+		uloop_fd_delete(&waker_fd);
+		close(waker_pipe);
+		close(waker_fd.fd);
+		waker_pipe = -1;
+	}
 
 	uloop_clear_timeouts();
 	uloop_clear_processes();

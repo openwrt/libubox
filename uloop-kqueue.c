@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-int uloop_init(void)
+static int uloop_init_pollfd(void)
 {
 	struct timespec timeout = { 0, 0 };
 	struct kevent ev = {};

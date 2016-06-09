@@ -23,7 +23,7 @@
 #define EPOLLRDHUP 0x2000
 #endif
 
-int uloop_init(void)
+static int uloop_init_pollfd(void)
 {
 	if (poll_fd >= 0)
 		return 0;
