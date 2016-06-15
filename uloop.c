@@ -105,6 +105,7 @@ static int waker_init(void)
 
 	waker_init_fd(fds[0]);
 	waker_init_fd(fds[1]);
+	waker_pipe = fds[1];
 
 	waker_fd.fd = fds[0];
 	waker_fd.cb = waker_consume;
