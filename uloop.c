@@ -387,7 +387,13 @@ static void uloop_handle_processes(void)
 
 static void uloop_signal_wake(void)
 {
-	write(waker_pipe, "w", 1);
+	do {
+		if (write(waker_pipe, "w", 1) < 0) {
+			if (errno == EINTR)
+				continue;
+		}
+		break;
+	} while (1);
 }
 
 static void uloop_handle_sigint(int signo)
