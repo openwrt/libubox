@@ -58,6 +58,7 @@ static struct list_head processes = LIST_HEAD_INIT(processes);
 
 static int poll_fd = -1;
 bool uloop_cancelled = false;
+static int uloop_status = 0;
 static bool do_sigchld = false;
 
 static struct uloop_fd_event cur_fds[ULOOP_MAX_EVENTS];
@@ -391,6 +392,7 @@ static void uloop_signal_wake(void)
 
 static void uloop_handle_sigint(int signo)
 {
+	uloop_status = signo;
 	uloop_cancelled = true;
 	uloop_signal_wake();
 }
@@ -506,7 +508,7 @@ static void uloop_clear_processes(void)
 		uloop_process_delete(p);
 }
 
-void uloop_run(void)
+int uloop_run(void)
 {
 	static int recursive_calls = 0;
 	struct timeval tv;
@@ -518,8 +520,9 @@ void uloop_run(void)
 	if (!recursive_calls++)
 		uloop_setup_signals(true);
 
+	uloop_status = 0;
 	uloop_cancelled = false;
-	while(!uloop_cancelled)
+	while (!uloop_cancelled)
 	{
 		uloop_gettime(&tv);
 		uloop_process_timeouts(&tv);
@@ -536,6 +539,8 @@ void uloop_run(void)
 
 	if (!--recursive_calls)
 		uloop_setup_signals(false);
+
+	return uloop_status;
 }
 
 void uloop_done(void)
