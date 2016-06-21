@@ -65,6 +65,9 @@ static int ustream_alloc_default(struct ustream *s, struct ustream_buf_list *l)
 		return -1;
 
 	buf = malloc(sizeof(*buf) + l->buffer_len + s->string_data);
+	if (!buf)
+		return -1;
+
 	ustream_init_buf(buf, l->buffer_len);
 	ustream_add_buf(l, buf);
 
@@ -490,6 +493,8 @@ int ustream_vprintf(struct ustream *s, const char *format, va_list arg)
 			return ustream_write_buffered(s, buf, maxlen, wr);
 		} else {
 			buf = malloc(maxlen + 1);
+			if (!buf)
+				return 0;
 			wr = vsnprintf(buf, maxlen + 1, format, arg);
 			wr = ustream_write(s, buf, wr, false);
 			free(buf);
@@ -517,6 +522,8 @@ int ustream_vprintf(struct ustream *s, const char *format, va_list arg)
 		return wr;
 
 	buf = malloc(maxlen + 1);
+	if (!buf)
+		return wr;
 	maxlen = vsnprintf(buf, maxlen + 1, format, arg);
 	wr = ustream_write_buffered(s, buf + wr, maxlen - wr, wr);
 	free(buf);

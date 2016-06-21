@@ -325,8 +325,11 @@ static int ul_process(lua_State *L)
 		int argn = lua_objlen(L, -3);
 		int envn = lua_objlen(L, -2);
 		char** argp = malloc(sizeof(char*) * (argn + 2));
-		char** envp = malloc(sizeof(char*) * envn + 1);
+		char** envp = malloc(sizeof(char*) * (envn + 1));
 		int i = 1;
+
+		if (!argp || !envp)
+			_exit(-1);
 
 		argp[0] = (char*) lua_tostring(L, -4);
 		for (i = 1; i <= argn; i++) {
@@ -344,7 +347,7 @@ static int ul_process(lua_State *L)
 		envp[i - 1] = NULL;
 
 		execve(*argp, argp, envp);
-		exit(-1);
+		_exit(-1);
 	}
 
 	lua_getglobal(L, "__uloop_cb");

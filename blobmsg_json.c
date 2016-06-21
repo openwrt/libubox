@@ -119,15 +119,22 @@ struct strbuf {
 
 static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
 {
+	size_t new_len;
+	char *new_buf;
+
 	if (len <= 0)
 		return true;
 
 	if (s->pos + len >= s->len) {
-		s->len += 16 + len;
-		s->buf = realloc(s->buf, s->len);
-		if (!s->buf)
+		new_len = s->len + 16 + len;
+		new_buf = realloc(s->buf, new_len);
+		if (!new_buf)
 			return false;
+
+		s->len = new_len;
+		s->buf = new_buf;
 	}
+
 	memcpy(s->buf + s->pos, c, len);
 	s->pos += len;
 	return true;
@@ -290,13 +297,17 @@ char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_jso
 {
 	struct strbuf s;
 	bool array;
+	char *ret;
 
 	s.len = blob_len(attr);
-	s.buf = malloc(s.len);
 	s.pos = 0;
 	s.custom_format = cb;
 	s.priv = priv;
 	s.indent = false;
+
+	s.buf = malloc(s.len);
+	if (!s.buf)
+		return NULL;
 
 	if (indent >= 0) {
 		s.indent = true;
@@ -316,8 +327,13 @@ char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_jso
 		return NULL;
 	}
 
-	s.buf = realloc(s.buf, s.pos + 1);
-	s.buf[s.pos] = 0;
+	ret = realloc(s.buf, s.pos + 1);
+	if (!ret) {
+		free(s.buf);
+		return NULL;
+	}
 
-	return s.buf;
+	ret[s.pos] = 0;
+
+	return ret;
 }

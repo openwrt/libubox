@@ -71,20 +71,25 @@ bool kvlist_delete(struct kvlist *kv, const char *name)
 	return !!node;
 }
 
-void kvlist_set(struct kvlist *kv, const char *name, const void *data)
+bool kvlist_set(struct kvlist *kv, const char *name, const void *data)
 {
 	struct kvlist_node *node;
 	char *name_buf;
 	int len = kv->get_len(kv, data);
 
-	kvlist_delete(kv, name);
-
 	node = calloc_a(sizeof(struct kvlist_node) + len,
 		&name_buf, strlen(name) + 1);
+	if (!node)
+		return false;
+
+	kvlist_delete(kv, name);
+
 	memcpy(node->data, data, len);
 
 	node->avl.key = strcpy(name_buf, name);
 	avl_insert(&kv->avl, &node->avl);
+
+	return true;
 }
 
 void kvlist_free(struct kvlist *kv)

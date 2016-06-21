@@ -224,8 +224,8 @@ void *blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, unsign
 void *blobmsg_realloc_string_buffer(struct blob_buf *buf, unsigned int maxlen);
 void blobmsg_add_string_buffer(struct blob_buf *buf);
 
-void blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, va_list arg);
-void blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, ...)
+int blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, va_list arg);
+int blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, ...)
      __attribute__((format(printf, 3, 4)));
 
 

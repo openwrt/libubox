@@ -338,6 +338,10 @@ int main(int argc, char **argv)
 	for (i = 0; environ[i]; i++);
 
 	vars = calloc(i, sizeof(*vars));
+	if (!vars) {
+		fprintf(stderr, "%m\n");
+		return -1;
+	}
 	for (i = 0; environ[i]; i++) {
 		char *c;
 

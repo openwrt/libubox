@@ -45,6 +45,9 @@ json_script_file_from_blobmsg(const char *name, void *data, int len)
 		name_len = strlen(name) + 1;
 
 	f = calloc_a(sizeof(*f) + len, &new_name, name_len);
+	if (!f)
+		return NULL;
+
 	memcpy(f->data, data, len);
 	if (name)
 		f->avl.key = strcpy(new_name, name);
@@ -426,12 +429,15 @@ static int eval_string(struct json_call *call, struct blob_buf *buf, const char 
 	char c = '%';
 
 	dest = blobmsg_alloc_string_buffer(buf, name, 1);
+	if (!dest)
+		return -1;
+
 	next = alloca(strlen(pattern) + 1);
 	strcpy(next, pattern);
 
 	for (str = next; str; str = next) {
 		const char *cur;
-		char *end;
+		char *end, *new_buf;
 		int cur_len = 0;
 		bool cur_var = var;
 
@@ -464,7 +470,14 @@ static int eval_string(struct json_call *call, struct blob_buf *buf, const char 
 			cur_len = end - str;
 		}
 
-		dest = blobmsg_realloc_string_buffer(buf, len + cur_len + 1);
+		new_buf = blobmsg_realloc_string_buffer(buf, len + cur_len + 1);
+		if (!new_buf) {
+			/* Make eval_string return -1 */
+			var = true;
+			break;
+		}
+
+		dest = new_buf;
 		memcpy(dest + len, cur, cur_len);
 		len += cur_len;
 	}
