@@ -42,4 +42,18 @@ static inline char *blobmsg_format_json_indent(struct blob_attr *attr, bool list
 	return blobmsg_format_json_with_cb(attr, list, NULL, NULL, indent);
 }
 
+char *blobmsg_format_json_value_with_cb(struct blob_attr *attr,
+					blobmsg_json_format_t cb, void *priv,
+					int indent);
+
+static inline char *blobmsg_format_json_value(struct blob_attr *attr)
+{
+	return blobmsg_format_json_value_with_cb(attr, NULL, NULL, -1);
+}
+
+static inline char *blobmsg_format_json_value_indent(struct blob_attr *attr, int indent)
+{
+	return blobmsg_format_json_value_with_cb(attr, NULL, NULL, indent);
+}
+
 #endif
