@@ -18,6 +18,7 @@
 #ifndef __LIBUBOX_KVLIST_H
 #define __LIBUBOX_KVLIST_H
 
+#include "avl-cmp.h"
 #include "avl.h"
 
 struct kvlist {
@@ -31,6 +32,15 @@ struct kvlist_node {
 
 	char data[0] __attribute__((aligned(4)));
 };
+
+#define KVLIST_INIT(_name, _get_len)						\
+	{									\
+		.avl = AVL_TREE_INIT(_name.avl, avl_strcmp, false, NULL),	\
+		.get_len = _get_len						\
+	}
+
+#define KVLIST(_name, _get_len)							\
+	struct kvlist _name = KVLIST_INIT(_name, _get_len)
 
 #define __ptr_to_kv(_ptr) container_of(((char *) (_ptr)), struct kvlist_node, data[0])
 #define __avl_list_to_kv(_l) container_of(_l, struct kvlist_node, avl.list)
