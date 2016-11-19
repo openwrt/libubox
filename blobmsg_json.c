@@ -69,6 +69,9 @@ bool blobmsg_add_json_element(struct blob_buf *b, const char *name, json_object 
 	case json_type_int:
 		blobmsg_add_u32(b, name, json_object_get_int(obj));
 		break;
+	case json_type_double:
+		blobmsg_add_double(b, name, json_object_get_double(obj));
+		break;
 	case json_type_null:
 		blobmsg_add_field(b, BLOBMSG_TYPE_UNSPEC, name, NULL, 0);
 		break;
@@ -254,6 +257,9 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 		break;
 	case BLOBMSG_TYPE_INT64:
 		sprintf(buf, "%" PRId64, (int64_t) be64_to_cpu(*(uint64_t *)data));
+		break;
+	case BLOBMSG_TYPE_DOUBLE:
+		sprintf(buf, "%lf", blobmsg_get_double(attr));
 		break;
 	case BLOBMSG_TYPE_STRING:
 		blobmsg_format_string(s, data);

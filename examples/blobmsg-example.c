@@ -49,6 +49,9 @@ static void dump_attr_data(struct blob_attr *data, int indent, int next_indent)
 	case BLOBMSG_TYPE_INT64:
 		indent_printf(indent, "%"PRIu64"\n", blobmsg_get_u64(data));
 		break;
+	case BLOBMSG_TYPE_DOUBLE:
+		indent_printf(indent, "%lf\n", blobmsg_get_double(data));
+		break;
 	case BLOBMSG_TYPE_TABLE:
 	case BLOBMSG_TYPE_ARRAY:
 		if (!indent)
@@ -113,6 +116,7 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_string(buf, "message", "Hello, world!");
 
 	tbl = blobmsg_open_table(buf, "testdata");
+	blobmsg_add_double(buf, "double", 1.337e2);
 	blobmsg_add_u32(buf, "hello", 1);
 	blobmsg_add_string(buf, "world", "2");
 	blobmsg_close_table(buf, tbl);
@@ -121,6 +125,7 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_u32(buf, NULL, 0);
 	blobmsg_add_u32(buf, NULL, 1);
 	blobmsg_add_u32(buf, NULL, 2);
+	blobmsg_add_double(buf, "double", 1.337e2);
 	blobmsg_close_table(buf, tbl);
 }
 

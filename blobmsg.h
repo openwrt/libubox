@@ -31,6 +31,7 @@ enum blobmsg_type {
 	BLOBMSG_TYPE_INT32,
 	BLOBMSG_TYPE_INT16,
 	BLOBMSG_TYPE_INT8,
+	BLOBMSG_TYPE_DOUBLE,
 	__BLOBMSG_TYPE_LAST,
 	BLOBMSG_TYPE_LAST = __BLOBMSG_TYPE_LAST - 1,
 	BLOBMSG_TYPE_BOOL = BLOBMSG_TYPE_INT8,
@@ -112,6 +113,18 @@ int blobmsg_parse_array(const struct blobmsg_policy *policy, int policy_len,
 
 int blobmsg_add_field(struct blob_buf *buf, int type, const char *name,
                       const void *data, unsigned int len);
+
+static inline int
+blobmsg_add_double(struct blob_buf *buf, const char *name, double val)
+{
+	union {
+		double d;
+		uint64_t u64;
+	} v;
+	v.d = val;
+	v.u64 = cpu_to_be64(v.u64);
+	return blobmsg_add_field(buf, BLOBMSG_TYPE_DOUBLE, name, &v.u64, 8);
+}
 
 static inline int
 blobmsg_add_u8(struct blob_buf *buf, const char *name, uint8_t val)
@@ -210,6 +223,16 @@ static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
 	uint64_t tmp = ((uint64_t) be32_to_cpu(ptr[0])) << 32;
 	tmp |= be32_to_cpu(ptr[1]);
 	return tmp;
+}
+
+static inline double blobmsg_get_double(struct blob_attr *attr)
+{
+	union {
+		double d;
+		uint64_t u64;
+	} v;
+	v.u64 = blobmsg_get_u64(attr);
+	return v.d;
 }
 
 static inline char *blobmsg_get_string(struct blob_attr *attr)
