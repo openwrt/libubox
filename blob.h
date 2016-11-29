@@ -240,7 +240,7 @@ blob_put_u64(struct blob_buf *buf, int id, uint64_t val)
 #define blob_put_int64	blob_put_u64
 
 #define __blob_for_each_attr(pos, attr, rem) \
-	for (pos = (void *) attr; \
+	for (pos = (struct blob_attr *) attr; \
 	     rem > 0 && (blob_pad_len(pos) <= rem) && \
 	     (blob_pad_len(pos) >= sizeof(struct blob_attr)); \
 	     rem -= blob_pad_len(pos), pos = blob_next(pos))
@@ -248,7 +248,7 @@ blob_put_u64(struct blob_buf *buf, int id, uint64_t val)
 
 #define blob_for_each_attr(pos, attr, rem) \
 	for (rem = attr ? blob_len(attr) : 0, \
-	     pos = attr ? blob_data(attr) : 0; \
+	     pos = (struct blob_attr *) (attr ? blob_data(attr) : NULL); \
 	     rem > 0 && (blob_pad_len(pos) <= rem) && \
 	     (blob_pad_len(pos) >= sizeof(struct blob_attr)); \
 	     rem -= blob_pad_len(pos), pos = blob_next(pos))
