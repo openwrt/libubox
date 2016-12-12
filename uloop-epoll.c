@@ -52,7 +52,6 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 	if (flags & ULOOP_EDGE_TRIGGER)
 		ev.events |= EPOLLET;
 
-	ev.data.fd = fd->fd;
 	ev.data.ptr = fd;
 	fd->flags = flags;
 
