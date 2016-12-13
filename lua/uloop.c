@@ -288,8 +288,21 @@ static int ul_process_free(lua_State *L)
 	return 1;
 }
 
+static int ul_process_pid(lua_State *L)
+{
+	struct lua_uloop_process *proc = lua_touserdata(L, 1);
+
+	if (proc->p.pid) {
+		lua_pushnumber(L, proc->p.pid);
+		return 1;
+	}
+
+	return 0;
+}
+
 static const luaL_Reg process_m[] = {
 	{ "delete", ul_process_free },
+	{ "pid", ul_process_pid },
 	{ NULL, NULL }
 };
 
