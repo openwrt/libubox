@@ -16,10 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "utils.h"
+#include <sys/mman.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "utils.h"
 
 #define foreach_arg(_arg, _addr, _len, _first_addr, _first_len) \
 	for (_addr = (_first_addr), _len = (_first_len); \
@@ -103,3 +104,48 @@ out:
 }
 
 #endif
+
+void *cbuf_alloc(unsigned int order)
+{
+	char path[] = "/tmp/cbuf-XXXXXX";
+	unsigned long size = cbuf_size(order);
+	void *ret = NULL;
+	int fd;
+
+	fd = mkstemp(path);
+	if (fd < 0)
+		return NULL;
+
+	if (unlink(path))
+		goto close;
+
+	if (ftruncate(fd, cbuf_size(order)))
+		goto close;
+
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
+#endif
+
+	ret = mmap(NULL, size * 2, PROT_NONE, MAP_ANON | MAP_PRIVATE, -1, 0);
+	if (ret == MAP_FAILED) {
+		ret = NULL;
+		goto close;
+	}
+
+	if (mmap(ret, size, PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED,
+		 fd, 0) != ret ||
+	    mmap(ret + size, size, PROT_READ | PROT_WRITE,
+		 MAP_FIXED | MAP_SHARED, fd, 0) != ret + size) {
+		munmap(ret, size * 2);
+		ret = NULL;
+	}
+
+close:
+	close(fd);
+	return ret;
+}
+
+void cbuf_free(void *ptr, unsigned int order)
+{
+	munmap(ptr, cbuf_size(order) * 2);
+}

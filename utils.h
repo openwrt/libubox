@@ -23,6 +23,7 @@
 #include <sys/time.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include <time.h>
 
 /*
@@ -191,5 +192,24 @@ int b64_decode(const void *src, void *dest, size_t dest_len);
 
 #define B64_ENCODE_LEN(_len)	((((_len) + 2) / 3) * 4 + 1)
 #define B64_DECODE_LEN(_len)	(((_len) / 4) * 3 + 1)
+
+static inline unsigned int cbuf_order(unsigned int x)
+{
+	return 32 - __builtin_clz(x - 1);
+}
+
+static inline unsigned long cbuf_size(int order)
+{
+	unsigned long page_size = sysconf(_SC_PAGESIZE);
+	unsigned long ret = 1ULL << order;
+
+	if (ret < page_size)
+		ret = page_size;
+
+	return ret;
+}
+
+void *cbuf_alloc(unsigned int order);
+void cbuf_free(void *ptr, unsigned int order);
 
 #endif
