@@ -35,12 +35,13 @@ static const char *ulog_default_ident(void)
 	FILE *self;
 	static char line[64];
 	char *p = NULL;
+	char *sbuf;
 
 	if ((self = fopen("/proc/self/status", "r")) != NULL) {
 		while (fgets(line, sizeof(line), self)) {
 			if (!strncmp(line, "Name:", 5)) {
-				strtok(line, "\t\n");
-				p = strtok(NULL, "\t\n");
+				strtok_r(line, "\t\n", &sbuf);
+				p = strtok_r(NULL, "\t\n", &sbuf);
 				break;
 			}
 		}
