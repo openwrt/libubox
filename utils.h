@@ -57,7 +57,8 @@ extern int __BUILD_BUG_ON_CONDITION_FAILED;
 #define BUILD_BUG_ON __BUILD_BUG_ON
 #endif
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && !defined(CLOCK_MONOTONIC)
+#define LIBUBOX_COMPAT_CLOCK_GETTIME
 
 #include <mach/clock_types.h>
 #define CLOCK_REALTIME	CALENDAR_CLOCK
