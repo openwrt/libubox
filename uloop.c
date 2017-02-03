@@ -63,6 +63,7 @@ static bool do_sigchld = false;
 
 static struct uloop_fd_event cur_fds[ULOOP_MAX_EVENTS];
 static int cur_fd, cur_nfds;
+static int uloop_run_depth = 0;
 
 int uloop_fd_add(struct uloop_fd *sock, unsigned int flags);
 
@@ -514,16 +515,20 @@ static void uloop_clear_processes(void)
 		uloop_process_delete(p);
 }
 
+bool uloop_cancelling(void)
+{
+	return uloop_run_depth > 0 && uloop_cancelled;
+}
+
 int uloop_run(void)
 {
-	static int recursive_calls = 0;
 	struct timeval tv;
 
 	/*
 	 * Handlers are only updated for the first call to uloop_run() (and restored
 	 * when this call is done).
 	 */
-	if (!recursive_calls++)
+	if (!uloop_run_depth++)
 		uloop_setup_signals(true);
 
 	uloop_status = 0;
@@ -543,7 +548,7 @@ int uloop_run(void)
 		uloop_run_events(uloop_get_next_timeout(&tv));
 	}
 
-	if (!--recursive_calls)
+	if (!--uloop_run_depth)
 		uloop_setup_signals(false);
 
 	return uloop_status;
