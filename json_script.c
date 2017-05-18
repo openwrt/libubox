@@ -415,8 +415,10 @@ static int json_process_expr(struct json_call *call, struct blob_attr *cur)
 	}
 
 	ret = __json_process_type(call, cur, expr, ARRAY_SIZE(expr), &found);
-	if (!found)
-		ctx->handle_error(ctx, "Unknown expression type", cur);
+	if (!found) {
+		const char *name = blobmsg_data(blobmsg_data(cur));
+		ctx->handle_expr(ctx, name, cur, call->vars);
+	}
 
 	return ret;
 }
@@ -671,6 +673,7 @@ static int
 __default_handle_expr(struct json_script_ctx *ctx, const char *name,
 		      struct blob_attr *expr, struct blob_attr *vars)
 {
+	ctx->handle_error(ctx, "Unknown expression type", expr);
 	return -1;
 }
 
