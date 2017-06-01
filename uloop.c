@@ -520,8 +520,9 @@ bool uloop_cancelling(void)
 	return uloop_run_depth > 0 && uloop_cancelled;
 }
 
-int uloop_run(void)
+int uloop_run_timeout(int timeout)
 {
+	int next_time = 0;
 	struct timeval tv;
 
 	/*
@@ -545,7 +546,11 @@ int uloop_run(void)
 			break;
 
 		uloop_gettime(&tv);
-		uloop_run_events(uloop_get_next_timeout(&tv));
+
+		next_time = uloop_get_next_timeout(&tv);
+		if (timeout > 0 && next_time < timeout)
+			timeout = next_time;
+		uloop_run_events(timeout);
 	}
 
 	if (!--uloop_run_depth)

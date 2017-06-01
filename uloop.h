@@ -105,7 +105,11 @@ static inline void uloop_end(void)
 }
 
 int uloop_init(void);
-int uloop_run(void);
+int uloop_run_timeout(int timeout);
+static inline int uloop_run(void)
+{
+	return uloop_run_timeout(-1);
+}
 void uloop_done(void);
 
 #endif
