@@ -232,7 +232,7 @@ void runqueue_task_complete(struct runqueue_task *t)
 	t->cancelled = false;
 	if (t->complete)
 		t->complete(q, t);
-	runqueue_start_next(t->q);
+	runqueue_start_next(q);
 }
 
 static void
