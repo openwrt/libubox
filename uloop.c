@@ -548,9 +548,9 @@ int uloop_run_timeout(int timeout)
 		uloop_gettime(&tv);
 
 		next_time = uloop_get_next_timeout(&tv);
-		if (timeout > 0 && next_time < timeout)
-			timeout = next_time;
-		uloop_run_events(timeout);
+		if (timeout > 0 && timeout < next_time)
+			next_time = timeout;
+		uloop_run_events(next_time);
 	}
 
 	if (!--uloop_run_depth)
