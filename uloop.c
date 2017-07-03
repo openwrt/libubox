@@ -58,6 +58,7 @@ static struct list_head processes = LIST_HEAD_INIT(processes);
 
 static int poll_fd = -1;
 bool uloop_cancelled = false;
+bool uloop_handle_sigchld = true;
 static int uloop_status = 0;
 static bool do_sigchld = false;
 
@@ -466,7 +467,9 @@ static void uloop_setup_signals(bool add)
 
 	uloop_install_handler(SIGINT, uloop_handle_sigint, &old_sigint, add);
 	uloop_install_handler(SIGTERM, uloop_handle_sigint, &old_sigterm, add);
-	uloop_install_handler(SIGCHLD, uloop_sigchld, &old_sigchld, add);
+
+	if (uloop_handle_sigchld)
+		uloop_install_handler(SIGCHLD, uloop_sigchld, &old_sigchld, add);
 
 	uloop_ignore_signal(SIGPIPE, add);
 }
