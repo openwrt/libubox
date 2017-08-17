@@ -170,22 +170,6 @@ static inline uint16_t __u_bswap16(uint16_t val)
 #define __hidden __attribute__((visibility("hidden")))
 #endif
 
-#ifndef BITS_PER_LONG
-#define BITS_PER_LONG (8 * sizeof(unsigned long))
-#endif
-
-#define BITFIELD_SIZE(_n) (((_n) + (BITS_PER_LONG - 1)) / BITS_PER_LONG)
-
-static inline void bitfield_set(unsigned long *bits, int bit)
-{
-	bits[bit / BITS_PER_LONG] |= (1UL << (bit % BITS_PER_LONG));
-}
-
-static inline bool bitfield_test(unsigned long *bits, int bit)
-{
-	return !!(bits[bit / BITS_PER_LONG] & (1UL << (bit % BITS_PER_LONG)));
-}
-
 int b64_encode(const void *src, size_t src_len,
 	       void *dest, size_t dest_len);
 
