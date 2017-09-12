@@ -116,6 +116,8 @@ static int waker_init(void)
 	return 0;
 }
 
+static void uloop_setup_signals(bool add);
+
 int uloop_init(void)
 {
 	if (uloop_init_pollfd() < 0)
@@ -125,6 +127,8 @@ int uloop_init(void)
 		uloop_done();
 		return -1;
 	}
+
+	uloop_setup_signals(true);
 
 	return 0;
 }
@@ -525,12 +529,7 @@ int uloop_run_timeout(int timeout)
 	int next_time = 0;
 	struct timeval tv;
 
-	/*
-	 * Handlers are only updated for the first call to uloop_run() (and restored
-	 * when this call is done).
-	 */
-	if (!uloop_run_depth++)
-		uloop_setup_signals(true);
+	uloop_run_depth++;
 
 	uloop_status = 0;
 	uloop_cancelled = false;
@@ -553,14 +552,15 @@ int uloop_run_timeout(int timeout)
 		uloop_run_events(next_time);
 	}
 
-	if (!--uloop_run_depth)
-		uloop_setup_signals(false);
+	--uloop_run_depth;
 
 	return uloop_status;
 }
 
 void uloop_done(void)
 {
+	uloop_setup_signals(false);
+
 	if (poll_fd >= 0) {
 		close(poll_fd);
 		poll_fd = -1;
