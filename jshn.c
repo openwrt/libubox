@@ -105,9 +105,6 @@ static int add_json_element(const char *key, json_object *obj)
 {
 	char *type;
 
-	if (!obj)
-		return -1;
-
 	switch (json_object_get_type(obj)) {
 	case json_type_object:
 		type = "object";
@@ -126,6 +123,9 @@ static int add_json_element(const char *key, json_object *obj)
 		break;
 	case json_type_double:
 		type = "double";
+		break;
+	case json_type_null:
+		type = "null";
 		break;
 	default:
 		return -1;
@@ -158,6 +158,9 @@ static int add_json_element(const char *key, json_object *obj)
 		break;
 	case json_type_double:
 		fprintf(stdout, "' %lf;\n", json_object_get_double(obj));
+		break;
+	case json_type_null:
+		fprintf(stdout, "';\n");
 		break;
 	default:
 		return -1;
@@ -240,6 +243,8 @@ static void jshn_add_object_var(json_object *obj, bool array, const char *prefix
 		new = json_object_new_double(strtod(var, NULL));
 	} else if (!strcmp(type, "boolean")) {
 		new = json_object_new_boolean(!!atoi(var));
+	} else if (!strcmp(type, "null")) {
+		new = NULL;
 	} else {
 		return;
 	}

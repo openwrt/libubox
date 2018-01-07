@@ -168,6 +168,12 @@ json_add_double() {
 	_json_add_generic double "$1" "$2" "$cur"
 }
 
+json_add_null() {
+	local cur
+	_json_get_var cur JSON_CUR
+	_json_add_generic null "$1" "" "$cur"
+}
+
 # functions read access to json variables
 
 json_load() {
