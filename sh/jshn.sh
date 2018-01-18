@@ -180,6 +180,10 @@ json_load() {
 	eval "`jshn -r "$1"`"
 }
 
+json_load_file() {
+	eval "`jshn -R "$1"`"
+}
+
 json_dump() {
 	jshn "$@" ${JSON_PREFIX:+-p "$JSON_PREFIX"} -w 
 }

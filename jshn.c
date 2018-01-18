@@ -25,6 +25,8 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <getopt.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include "list.h"
 
 #include "avl.h"
@@ -305,7 +307,7 @@ out:
 
 static int usage(const char *progname)
 {
-	fprintf(stderr, "Usage: %s [-n] [-i] -r <message>|-w\n", progname);
+	fprintf(stderr, "Usage: %s [-n] [-i] -r <message>|-R <file>|-w\n", progname);
 	return 2;
 }
 
@@ -338,6 +340,10 @@ int main(int argc, char **argv)
 	struct env_var *vars;
 	int i;
 	int ch;
+	int fd;
+	struct stat sb;
+	char *fbuf;
+	int ret;
 
 	avl_init(&env_vars, avl_strcmp_var, false, NULL);
 	for (i = 0; environ[i]; i++);
@@ -359,7 +365,7 @@ int main(int argc, char **argv)
 		avl_insert(&env_vars, &vars[i].avl);
 	}
 
-	while ((ch = getopt(argc, argv, "p:nir:w")) != -1) {
+	while ((ch = getopt(argc, argv, "p:nir:R:w")) != -1) {
 		switch(ch) {
 		case 'p':
 			var_prefix = optarg;
@@ -367,6 +373,31 @@ int main(int argc, char **argv)
 			break;
 		case 'r':
 			return jshn_parse(optarg);
+		case 'R':
+			if ((fd = open(optarg, O_RDONLY)) == -1) {
+				fprintf(stderr, "Error opening %s\n", optarg);
+				return 3;
+			}
+			if (fstat(fd, &sb) == -1) {
+				fprintf(stderr, "Error getting size of %s\n", optarg);
+				close(fd);
+				return 3;
+			}
+			if (!(fbuf = malloc(sb.st_size))) {
+				fprintf(stderr, "Error allocating memory for %s\n", optarg);
+				close(fd);
+				return 3;
+			}
+			if (read(fd, fbuf, sb.st_size) != sb.st_size) {
+				fprintf(stderr, "Error reading %s\n", optarg);
+				free(fbuf);
+				close(fd);
+				return 3;
+			}
+			ret = jshn_parse(fbuf);
+			free(fbuf);
+			close(fd);
+			return ret;
 		case 'w':
 			return jshn_format(no_newline, indent);
 		case 'n':
