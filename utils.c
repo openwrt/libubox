@@ -47,8 +47,11 @@ void *__calloc_a(size_t len, ...)
 	va_end(ap1);
 
 	ptr = calloc(1, alloc_len);
-	if (!ptr)
+	if (!ptr) {
+		va_end(ap);
 		return NULL;
+	}
+
 	alloc_len = 0;
 	foreach_arg(ap, cur_addr, cur_len, &ret, len) {
 		*cur_addr = &ptr[alloc_len];
