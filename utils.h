@@ -117,21 +117,29 @@ int clock_gettime(int type, struct timespec *tv);
 	(((uint64_t)(x) & (uint64_t)0x00ff000000000000ULL) >> 40) |	\
 	(((uint64_t)(x) & (uint64_t)0xff00000000000000ULL) >> 56)))
 
+/*
+ * This returns a constant expression while determining if an argument is
+ * a constant expression, most importantly without evaluating the argument.
+ */
+#define __is_constant(x)						\
+	(sizeof(int) == sizeof(*(1 ? ((void*)((long)(x) * 0l)) : (int*)1)))
 
-static inline uint16_t __u_bswap16(uint16_t val)
-{
-	return ((val >> 8) & 0xffu) | ((val & 0xffu) << 8);
-}
+#define __eval_once(func, x)						\
+	({ typeof(x) __x = x; func(__x); })
+
+#define __eval_safe(func, x)						\
+	__builtin_choose_expr(__is_constant(x),				\
+			      func(x), __eval_once(func, x))
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 
-#define cpu_to_be64(x) __constant_swap64(x)
-#define cpu_to_be32(x) __constant_swap32(x)
-#define cpu_to_be16(x) __constant_swap16(x)
+#define cpu_to_be64(x) __eval_safe(__constant_swap64, x)
+#define cpu_to_be32(x) __eval_safe(__constant_swap32, x)
+#define cpu_to_be16(x) __eval_safe(__constant_swap16, x)
 
-#define be64_to_cpu(x) __constant_swap64(x)
-#define be32_to_cpu(x) __constant_swap32(x)
-#define be16_to_cpu(x) __constant_swap16(x)
+#define be64_to_cpu(x) __eval_safe(__constant_swap64, x)
+#define be32_to_cpu(x) __eval_safe(__constant_swap32, x)
+#define be16_to_cpu(x) __eval_safe(__constant_swap16, x)
 
 #define cpu_to_le64(x) (x)
 #define cpu_to_le32(x) (x)
@@ -143,13 +151,13 @@ static inline uint16_t __u_bswap16(uint16_t val)
 
 #else /* __BYTE_ORDER == __LITTLE_ENDIAN */
 
-#define cpu_to_le64(x) __constant_swap64(x)
-#define cpu_to_le32(x) __constant_swap32(x)
-#define cpu_to_le16(x) __constant_swap16(x)
+#define cpu_to_le64(x) __eval_safe(__constant_swap64, x)
+#define cpu_to_le32(x) __eval_safe(__constant_swap32, x)
+#define cpu_to_le16(x) __eval_safe(__constant_swap16, x)
 
-#define le64_to_cpu(x) __constant_swap64(x)
-#define le32_to_cpu(x) __constant_swap32(x)
-#define le16_to_cpu(x) __constant_swap16(x)
+#define le64_to_cpu(x) __eval_safe(__constant_swap64, x)
+#define le32_to_cpu(x) __eval_safe(__constant_swap32, x)
+#define le16_to_cpu(x) __eval_safe(__constant_swap16, x)
 
 #define cpu_to_be64(x) (x)
 #define cpu_to_be32(x) (x)
