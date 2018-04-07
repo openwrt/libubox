@@ -27,6 +27,7 @@
 #include <getopt.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <inttypes.h>
 #include "list.h"
 
 #include "avl.h"
@@ -156,7 +157,7 @@ static int add_json_element(const char *key, json_object *obj)
 		fprintf(stdout, "' %d;\n", json_object_get_boolean(obj));
 		break;
 	case json_type_int:
-		fprintf(stdout, "' %jd;\n", json_object_get_int64(obj));
+		fprintf(stdout, "' %"PRId64";\n", json_object_get_int64(obj));
 		break;
 	case json_type_double:
 		fprintf(stdout, "' %lf;\n", json_object_get_double(obj));
