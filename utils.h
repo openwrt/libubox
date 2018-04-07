@@ -125,7 +125,7 @@ int clock_gettime(int type, struct timespec *tv);
 	(sizeof(int) == sizeof(*(1 ? ((void*)((long)(x) * 0l)) : (int*)1)))
 
 #define __eval_once(func, x)						\
-	({ typeof(x) __x = x; func(__x); })
+	({ __typeof__(x) __x = x; func(__x); })
 
 #define __eval_safe(func, x)						\
 	__builtin_choose_expr(__is_constant(x),				\
