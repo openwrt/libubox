@@ -127,9 +127,18 @@ int clock_gettime(int type, struct timespec *tv);
 #define __eval_once(func, x)						\
 	({ __typeof__(x) __x = x; func(__x); })
 
+#ifdef __cplusplus
+/*
+ * g++ does not support __builtin_choose_expr, so always use __eval_once.
+ * Unfortunately this means that the byte order functions can't be used
+ * as a constant expression anymore
+ */
+#define __eval_safe(func, x) __eval_once(func, x)
+#else
 #define __eval_safe(func, x)						\
 	__builtin_choose_expr(__is_constant(x),				\
 			      func(x), __eval_once(func, x))
+#endif
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 
