@@ -142,6 +142,22 @@ int clock_gettime(int type, struct timespec *tv);
 
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 
+#define const_cpu_to_be64(x) __constant_swap64(x)
+#define const_cpu_to_be32(x) __constant_swap32(x)
+#define const_cpu_to_be16(x) __constant_swap16(x)
+
+#define const_be64_to_cpu(x) __constant_swap64(x)
+#define const_be32_to_cpu(x) __constant_swap32(x)
+#define const_be16_to_cpu(x) __constant_swap16(x)
+
+#define const_cpu_to_le64(x) (x)
+#define const_cpu_to_le32(x) (x)
+#define const_cpu_to_le16(x) (x)
+
+#define const_le64_to_cpu(x) (x)
+#define const_le32_to_cpu(x) (x)
+#define const_le16_to_cpu(x) (x)
+
 #define cpu_to_be64(x) __eval_safe(__constant_swap64, x)
 #define cpu_to_be32(x) __eval_safe(__constant_swap32, x)
 #define cpu_to_be16(x) __eval_safe(__constant_swap16, x)
@@ -159,6 +175,22 @@ int clock_gettime(int type, struct timespec *tv);
 #define le16_to_cpu(x) (x)
 
 #else /* __BYTE_ORDER == __LITTLE_ENDIAN */
+
+#define const_cpu_to_le64(x) __constant_swap64(x)
+#define const_cpu_to_le32(x) __constant_swap32(x)
+#define const_cpu_to_le16(x) __constant_swap16(x)
+
+#define const_le64_to_cpu(x) __constant_swap64(x)
+#define const_le32_to_cpu(x) __constant_swap32(x)
+#define const_le16_to_cpu(x) __constant_swap16(x)
+
+#define const_cpu_to_be64(x) (x)
+#define const_cpu_to_be32(x) (x)
+#define const_cpu_to_be16(x) (x)
+
+#define const_be64_to_cpu(x) (x)
+#define const_be32_to_cpu(x) (x)
+#define const_be16_to_cpu(x) (x)
 
 #define cpu_to_le64(x) __eval_safe(__constant_swap64, x)
 #define cpu_to_le32(x) __eval_safe(__constant_swap32, x)
