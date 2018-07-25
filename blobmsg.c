@@ -135,6 +135,8 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 	int i;
 
 	memset(tb, 0, policy_len * sizeof(*tb));
+	if (!data || !len)
+		return -EINVAL;
 	pslen = alloca(policy_len);
 	for (i = 0; i < policy_len; i++) {
 		if (!policy[i].name)
