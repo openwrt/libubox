@@ -107,6 +107,8 @@ static inline size_t blobmsg_len(const struct blob_attr *attr)
 bool blobmsg_check_attr(const struct blob_attr *attr, bool name);
 bool blobmsg_check_attr_list(const struct blob_attr *attr, int type);
 
+bool blobmsg_check_attr_len(const struct blob_attr *attr, bool name, size_t len);
+
 /*
  * blobmsg_check_array: validate array/table and return size
  *

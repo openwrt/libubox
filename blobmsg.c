@@ -33,38 +33,70 @@ blobmsg_namelen(const struct blobmsg_hdr *hdr)
 
 bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 {
+	return blobmsg_check_attr_len(attr, name, blob_raw_len(attr));
+}
+
+static bool blobmsg_check_name(const struct blob_attr *attr, size_t len, bool name)
+{
+	char *limit = (char *) attr + len;
 	const struct blobmsg_hdr *hdr;
-	const char *data;
-	size_t len;
-	int id;
 
-	if (blob_len(attr) < sizeof(struct blobmsg_hdr))
+	hdr = blob_data(attr);
+	if (name && !hdr->namelen)
 		return false;
 
-	hdr = (void *) attr->data;
-	if (!hdr->namelen && name)
+	if ((char *) hdr->name + blobmsg_namelen(hdr) > limit)
 		return false;
 
-	if (blobmsg_namelen(hdr) > blob_len(attr) - sizeof(struct blobmsg_hdr))
+	if (blobmsg_namelen(hdr) > (blob_len(attr) - sizeof(struct blobmsg_hdr)))
 		return false;
 
 	if (hdr->name[blobmsg_namelen(hdr)] != 0)
 		return false;
 
-	id = blob_id(attr);
-	len = blobmsg_data_len(attr);
-	if (len > blob_raw_len(attr))
-		return false;
+	return true;
+}
+
+static const char* blobmsg_check_data(const struct blob_attr *attr, size_t len, size_t *data_len)
+{
+	char *limit = (char *) attr + len;
+	const char *data;
+
+	*data_len = blobmsg_data_len(attr);
+	if (*data_len > blob_raw_len(attr))
+		return NULL;
 
 	data = blobmsg_data(attr);
+	if (data + *data_len > limit)
+		return NULL;
 
+	return data;
+}
+
+bool blobmsg_check_attr_len(const struct blob_attr *attr, bool name, size_t len)
+{
+	const char *data;
+	size_t data_len;
+	int id;
+
+	if (len < sizeof(struct blob_attr))
+		return false;
+
+	if (!blobmsg_check_name(attr, len, name))
+		return false;
+
+	id = blob_id(attr);
 	if (id > BLOBMSG_TYPE_LAST)
 		return false;
 
 	if (!blob_type[id])
 		return true;
 
-	return blob_check_type(data, len, blob_type[id]);
+	data = blobmsg_check_data(attr, len, &data_len);
+	if (!data)
+		return false;
+
+	return blob_check_type(data, data_len, blob_type[id]);
 }
 
 int blobmsg_check_array(const struct blob_attr *attr, int type)
@@ -115,7 +147,7 @@ int blobmsg_parse_array(const struct blobmsg_policy *policy, int policy_len,
 		    blob_id(attr) != policy[i].type)
 			continue;
 
-		if (!blobmsg_check_attr(attr, false))
+		if (!blobmsg_check_attr_len(attr, false, len))
 			return -1;
 
 		if (tb[i])
@@ -162,7 +194,7 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 			if (blobmsg_namelen(hdr) != pslen[i])
 				continue;
 
-			if (!blobmsg_check_attr(attr, true))
+			if (!blobmsg_check_attr_len(attr, true, len))
 				return -1;
 
 			if (tb[i])
