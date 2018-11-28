@@ -266,7 +266,7 @@ int blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, .
 #define blobmsg_for_each_attr(pos, attr, rem) \
 	for (rem = attr ? blobmsg_data_len(attr) : 0, \
 	     pos = (struct blob_attr *) (attr ? blobmsg_data(attr) : NULL); \
-	     rem > 0 && (blob_pad_len(pos) <= rem) && \
+	     rem >= sizeof(struct blob_attr) && (blob_pad_len(pos) <= rem) && \
 	     (blob_pad_len(pos) >= sizeof(struct blob_attr)); \
 	     rem -= blob_pad_len(pos), pos = blob_next(pos))
 
