@@ -185,7 +185,6 @@ static void blobmsg_format_string(struct strbuf *s, const char *str)
 			break;
 		case '"':
 		case '\\':
-		case '/':
 			escape = *p;
 			break;
 		default:
