@@ -15,7 +15,7 @@ static const char *indent_str = "\t\t\t\t\t\t\t\t\t\t\t\t\t";
 static void dump_attr_data(struct blob_attr *data, int indent, int next_indent);
 
 static void
-dump_table(struct blob_attr *head, int len, int indent, bool array)
+dump_table(struct blob_attr *head, size_t len, int indent, bool array)
 {
 	struct blob_attr *attr;
 	struct blobmsg_hdr *hdr;

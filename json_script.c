@@ -95,7 +95,7 @@ const char *json_script_find_var(struct json_script_ctx *ctx, struct blob_attr *
 				 const char *name)
 {
 	struct blob_attr *cur;
-	int rem;
+	size_t rem;
 
 	blobmsg_for_each_attr(cur, vars, rem) {
 		if (blobmsg_type(cur) != BLOBMSG_TYPE_STRING)
@@ -164,7 +164,7 @@ static int handle_case(struct json_call *call, struct blob_attr *expr)
 {
 	struct blob_attr *tb[3], *cur;
 	const char *var;
-	int rem;
+	size_t rem;
 
 	json_get_tuple(expr, tb, BLOBMSG_TYPE_STRING, BLOBMSG_TYPE_TABLE);
 	if (!tb[1] || !tb[2])
@@ -233,7 +233,7 @@ static int expr_eq_regex(struct json_call *call, struct blob_attr *expr, bool re
 	struct json_script_ctx *ctx = call->ctx;
 	struct blob_attr *tb[3], *cur;
 	const char *var;
-	int rem;
+	size_t rem;
 
 	json_get_tuple(expr, tb, BLOBMSG_TYPE_STRING, 0);
 	if (!tb[1] || !tb[2])
@@ -277,7 +277,7 @@ static int handle_expr_has(struct json_call *call, struct blob_attr *expr)
 {
 	struct json_script_ctx *ctx = call->ctx;
 	struct blob_attr *tb[3], *cur;
-	int rem;
+	size_t rem;
 
 	json_get_tuple(expr, tb, 0, 0);
 	if (!tb[1])
@@ -306,7 +306,8 @@ static int handle_expr_has(struct json_call *call, struct blob_attr *expr)
 static int expr_and_or(struct json_call *call, struct blob_attr *expr, bool and)
 {
 	struct blob_attr *cur;
-	int ret, rem;
+	int ret;
+	size_t rem;
 	int i = 0;
 
 	blobmsg_for_each_attr(cur, expr, rem) {
@@ -515,7 +516,8 @@ static int cmd_process_strings(struct json_call *call, struct blob_attr *attr)
 	struct json_script_ctx *ctx = call->ctx;
 	struct blob_attr *cur;
 	int args = -1;
-	int rem, ret;
+	int ret;
+	size_t rem;
 	void *c;
 
 	blob_buf_init(&ctx->buf, 0);
@@ -572,7 +574,7 @@ static int json_process_cmd(struct json_call *call, struct blob_attr *block)
 {
 	struct json_script_ctx *ctx = call->ctx;
 	struct blob_attr *cur;
-	int rem;
+	size_t rem;
 	int ret;
 	int i = 0;
 
@@ -589,6 +591,7 @@ static int json_process_cmd(struct json_call *call, struct blob_attr *block)
 		case BLOBMSG_TYPE_STRING:
 			if (!i)
 				return __json_process_cmd(call, block);
+			/* fall through */
 		default:
 			ret = json_process_cmd(call, cur);
 			if (ret < -1)

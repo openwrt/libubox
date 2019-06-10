@@ -146,7 +146,7 @@ static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
 static void add_separator(struct strbuf *s)
 {
 	const char *indent_chars = "\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";
-	int len;
+	size_t len;
 
 	if (!s->indent)
 		return;
@@ -279,7 +279,7 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 {
 	struct blob_attr *pos;
 	bool first = true;
-	int rem = len;
+	size_t rem = len;
 
 	blobmsg_puts(s, (array ? "[" : "{" ), 1);
 	s->indent_level++;

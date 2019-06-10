@@ -186,7 +186,7 @@ blob_nest_end(struct blob_buf *buf, void *cookie)
 	buf->head = attr;
 }
 
-static const int blob_type_minlen[BLOB_ATTR_LAST] = {
+static const size_t blob_type_minlen[BLOB_ATTR_LAST] = {
 	[BLOB_ATTR_STRING] = 1,
 	[BLOB_ATTR_INT8] = sizeof(uint8_t),
 	[BLOB_ATTR_INT16] = sizeof(uint16_t),
@@ -222,12 +222,12 @@ blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_at
 {
 	struct blob_attr *pos;
 	int found = 0;
-	int rem;
+	size_t rem;
 
 	memset(data, 0, sizeof(struct blob_attr *) * max);
 	blob_for_each_attr(pos, attr, rem) {
 		int id = blob_id(pos);
-		int len = blob_len(pos);
+		size_t len = blob_len(pos);
 
 		if (id >= max)
 			continue;

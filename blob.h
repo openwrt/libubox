@@ -96,7 +96,7 @@ blob_is_extended(const struct blob_attr *attr)
 /*
  * blob_len: returns the length of the attribute's payload
  */
-static inline unsigned int
+static inline size_t
 blob_len(const struct blob_attr *attr)
 {
 	return (be32_to_cpu(attr->id_len) & BLOB_ATTR_LEN_MASK) - sizeof(struct blob_attr);
@@ -105,7 +105,7 @@ blob_len(const struct blob_attr *attr)
 /*
  * blob_raw_len: returns the complete length of an attribute (including the header)
  */
-static inline unsigned int
+static inline size_t
 blob_raw_len(const struct blob_attr *attr)
 {
 	return blob_len(attr) + sizeof(struct blob_attr);
@@ -114,7 +114,7 @@ blob_raw_len(const struct blob_attr *attr)
 /*
  * blob_pad_len: returns the padded length of an attribute (including the header)
  */
-static inline unsigned int
+static inline size_t
 blob_pad_len(const struct blob_attr *attr)
 {
 	unsigned int len = blob_raw_len(attr);

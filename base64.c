@@ -142,7 +142,7 @@ int b64_encode(const void *_src, size_t srclength,
 	size_t datalength = 0;
 	u_char input[3] = {0};
 	u_char output[4];
-	int i;
+	size_t i;
 
 	while (2 < srclength) {
 		input[0] = *src++;
@@ -200,7 +200,8 @@ int b64_decode(const void *_src, void *dest, size_t targsize)
 {
 	const char *src = _src;
 	unsigned char *target = dest;
-	int tarindex, state, ch;
+	int state, ch;
+	size_t tarindex;
 	u_char nextbyte;
 	char *pos;
 

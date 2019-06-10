@@ -67,7 +67,7 @@ int blobmsg_check_array(const struct blob_attr *attr, int type)
 {
 	struct blob_attr *cur;
 	bool name;
-	int rem;
+	size_t rem;
 	int size = 0;
 
 	switch (blobmsg_type(attr)) {
