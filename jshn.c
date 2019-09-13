@@ -275,7 +275,7 @@ out:
 	return obj;
 }
 
-static int jshn_format(bool no_newline, bool indent)
+static int jshn_format(bool no_newline, bool indent, FILE *stream)
 {
 	json_object *obj;
 	const char *output;
@@ -297,7 +297,7 @@ static int jshn_format(bool no_newline, bool indent)
 			goto out;
 		output = blobmsg_output;
 	}
-	fprintf(stdout, "%s%s", output, no_newline ? "" : "\n");
+	fprintf(stream, "%s%s", output, no_newline ? "" : "\n");
 	free(blobmsg_output);
 	ret = 0;
 
@@ -342,6 +342,7 @@ int main(int argc, char **argv)
 	int i;
 	int ch;
 	int fd;
+	FILE *fp = NULL;
 	struct stat sb;
 	char *fbuf;
 	int ret;
@@ -366,7 +367,7 @@ int main(int argc, char **argv)
 		avl_insert(&env_vars, &vars[i].avl);
 	}
 
-	while ((ch = getopt(argc, argv, "p:nir:R:w")) != -1) {
+	while ((ch = getopt(argc, argv, "p:nir:R:o:w")) != -1) {
 		switch(ch) {
 		case 'p':
 			var_prefix = optarg;
@@ -400,7 +401,16 @@ int main(int argc, char **argv)
 			close(fd);
 			return ret;
 		case 'w':
-			return jshn_format(no_newline, indent);
+			return jshn_format(no_newline, indent, stdout);
+		case 'o':
+			fp = fopen(optarg, "w");
+			if (!fp) {
+				fprintf(stderr, "Error opening %s\n", optarg);
+				return 3;
+			}
+			jshn_format(no_newline, indent, fp);
+			fclose(fp);
+			return 0;
 		case 'n':
 			no_newline = true;
 			break;
