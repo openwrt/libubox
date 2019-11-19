@@ -315,7 +315,7 @@ static void setup_strbuf(struct strbuf *s, struct blob_attr *attr, blobmsg_json_
 
 char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_json_format_t cb, void *priv, int indent)
 {
-	struct strbuf s;
+	struct strbuf s = {0};
 	bool array;
 	char *ret;
 
@@ -349,7 +349,7 @@ char *blobmsg_format_json_with_cb(struct blob_attr *attr, bool list, blobmsg_jso
 
 char *blobmsg_format_json_value_with_cb(struct blob_attr *attr, blobmsg_json_format_t cb, void *priv, int indent)
 {
-	struct strbuf s;
+	struct strbuf s = {0};
 	char *ret;
 
 	setup_strbuf(&s, attr, cb, priv, indent);
