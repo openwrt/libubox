@@ -443,12 +443,15 @@ int main(int argc, char **argv)
 			indent = true;
 			break;
 		default:
+			free(vars);
 			return usage(argv[0]);
 		}
 	}
 
+	free(vars);
 	return usage(argv[0]);
 
 exit:
+	free(vars);
 	return ret;
 }
