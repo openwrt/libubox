@@ -178,12 +178,15 @@ static int jshn_parse(const char *str)
 
 	obj = json_tokener_parse(str);
 	if (!obj || json_object_get_type(obj) != json_type_object) {
+		if (obj)
+			json_object_put(obj);
 		fprintf(stderr, "Failed to parse message data\n");
 		return 1;
 	}
 	fprintf(stdout, "json_init;\n");
 	add_json_object(obj);
 	fflush(stdout);
+	json_object_put(obj);
 
 	return 0;
 }
