@@ -333,6 +333,61 @@ static int avl_strcmp_var(const void *k1, const void *k2, void *ptr)
 	return c1 - c2;
 }
 
+static int jshn_parse_file(const char *path)
+{
+	struct stat sb;
+	int ret = 0;
+	char *fbuf;
+	int fd;
+
+	if ((fd = open(path, O_RDONLY)) == -1) {
+		fprintf(stderr, "Error opening %s\n", path);
+		return 3;
+	}
+
+	if (fstat(fd, &sb) == -1) {
+		fprintf(stderr, "Error getting size of %s\n", path);
+		close(fd);
+		return 3;
+	}
+
+	if (!(fbuf = malloc(sb.st_size))) {
+		fprintf(stderr, "Error allocating memory for %s\n", path);
+		close(fd);
+		return 3;
+	}
+
+	if (read(fd, fbuf, sb.st_size) != sb.st_size) {
+		fprintf(stderr, "Error reading %s\n", path);
+		free(fbuf);
+		close(fd);
+		return 3;
+	}
+
+	ret = jshn_parse(fbuf);
+	free(fbuf);
+	close(fd);
+
+	return ret;
+}
+
+static int jshn_format_file(const char *path, bool no_newline, bool indent)
+{
+	FILE *fp = NULL;
+	int ret = 0;
+
+	fp = fopen(path, "w");
+	if (!fp) {
+		fprintf(stderr, "Error opening %s\n", path);
+		return 3;
+	}
+
+	ret = jshn_format(no_newline, indent, fp);
+	fclose(fp);
+
+	return ret;
+}
+
 int main(int argc, char **argv)
 {
 	extern char **environ;
@@ -340,12 +395,8 @@ int main(int argc, char **argv)
 	bool indent = false;
 	struct env_var *vars;
 	int i;
+	int ret = 0;
 	int ch;
-	int fd;
-	FILE *fp = NULL;
-	struct stat sb;
-	char *fbuf;
-	int ret;
 
 	avl_init(&env_vars, avl_strcmp_var, false, NULL);
 	for (i = 0; environ[i]; i++);
@@ -374,43 +425,17 @@ int main(int argc, char **argv)
 			var_prefix_len = strlen(var_prefix);
 			break;
 		case 'r':
-			return jshn_parse(optarg);
+			ret = jshn_parse(optarg);
+			goto exit;
 		case 'R':
-			if ((fd = open(optarg, O_RDONLY)) == -1) {
-				fprintf(stderr, "Error opening %s\n", optarg);
-				return 3;
-			}
-			if (fstat(fd, &sb) == -1) {
-				fprintf(stderr, "Error getting size of %s\n", optarg);
-				close(fd);
-				return 3;
-			}
-			if (!(fbuf = malloc(sb.st_size))) {
-				fprintf(stderr, "Error allocating memory for %s\n", optarg);
-				close(fd);
-				return 3;
-			}
-			if (read(fd, fbuf, sb.st_size) != sb.st_size) {
-				fprintf(stderr, "Error reading %s\n", optarg);
-				free(fbuf);
-				close(fd);
-				return 3;
-			}
-			ret = jshn_parse(fbuf);
-			free(fbuf);
-			close(fd);
-			return ret;
+			ret = jshn_parse_file(optarg);
+			goto exit;
 		case 'w':
-			return jshn_format(no_newline, indent, stdout);
+			ret = jshn_format(no_newline, indent, stdout);
+			goto exit;
 		case 'o':
-			fp = fopen(optarg, "w");
-			if (!fp) {
-				fprintf(stderr, "Error opening %s\n", optarg);
-				return 3;
-			}
-			jshn_format(no_newline, indent, fp);
-			fclose(fp);
-			return 0;
+			ret = jshn_format_file(optarg, no_newline, indent);
+			goto exit;
 		case 'n':
 			no_newline = true;
 			break;
@@ -421,5 +446,9 @@ int main(int argc, char **argv)
 			return usage(argv[0]);
 		}
 	}
+
 	return usage(argv[0]);
+
+exit:
+	return ret;
 }
