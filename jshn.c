@@ -354,7 +354,7 @@ static int jshn_parse_file(const char *path)
 		return 3;
 	}
 
-	if (!(fbuf = malloc(sb.st_size))) {
+	if (!(fbuf = calloc(1, sb.st_size+1))) {
 		fprintf(stderr, "Error allocating memory for %s\n", path);
 		close(fd);
 		return 3;
