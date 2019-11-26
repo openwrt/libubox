@@ -3,7 +3,12 @@ INCLUDE(CheckLibraryExists)
 INCLUDE(CheckFunctionExists)
 
 PROJECT(ubox C)
-ADD_DEFINITIONS(-Os -Wextra -Wall -Werror --std=gnu99 -g3 -Wmissing-declarations -Wno-unused-parameter)
+
+ADD_DEFINITIONS(-Wall -Werror)
+IF(CMAKE_C_COMPILER_VERSION VERSION_GREATER 6)
+	ADD_DEFINITIONS(-Wextra)
+ENDIF()
+ADD_DEFINITIONS(-Os -std=gnu99 -g3 -Wmissing-declarations -Wno-unused-parameter)
 
 OPTION(BUILD_LUA "build Lua plugin" ON)
 OPTION(BUILD_EXAMPLES "build examples" ON)
