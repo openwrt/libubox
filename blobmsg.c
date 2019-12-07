@@ -230,8 +230,8 @@ blobmsg_open_nested(struct blob_buf *buf, const char *name, bool array)
 	return (void *)offset;
 }
 
-int
-blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, va_list arg)
+__attribute__((format(printf, 3, 0)))
+int blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, va_list arg)
 {
 	va_list arg2;
 	char cbuf;
@@ -251,8 +251,8 @@ blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, va_l
 	return ret;
 }
 
-int
-blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, ...)
+__attribute__((format(printf, 3, 4)))
+int blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, ...)
 {
 	va_list ap;
 	int ret;
