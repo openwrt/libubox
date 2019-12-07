@@ -6,7 +6,8 @@ PROJECT(ubox C)
 
 ADD_DEFINITIONS(-Wall -Werror)
 IF(CMAKE_C_COMPILER_VERSION VERSION_GREATER 6)
-	ADD_DEFINITIONS(-Wextra)
+	ADD_DEFINITIONS(-Wextra -Werror=implicit-function-declaration)
+	ADD_DEFINITIONS(-Wformat -Werror=format-security -Werror=format-nonliteral)
 ENDIF()
 ADD_DEFINITIONS(-Os -std=gnu99 -g3 -Wmissing-declarations -Wno-unused-parameter)
 
