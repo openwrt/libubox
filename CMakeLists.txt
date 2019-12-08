@@ -48,6 +48,14 @@ INSTALL(TARGETS ubox ubox-static
 ADD_SUBDIRECTORY(lua)
 ADD_SUBDIRECTORY(examples)
 
+MACRO(ADD_UNIT_TEST_SAN name)
+  ADD_EXECUTABLE(${name}-san ${name}.c)
+  TARGET_COMPILE_OPTIONS(${name}-san PRIVATE -g -fno-omit-frame-pointer -fsanitize=undefined,address,leak -fno-sanitize-recover=all)
+  TARGET_LINK_OPTIONS(${name}-san PRIVATE -fsanitize=undefined,address,leak)
+  TARGET_LINK_LIBRARIES(${name}-san ubox blobmsg_json json_script ${json})
+  TARGET_INCLUDE_DIRECTORIES(${name}-san PRIVATE ${PROJECT_SOURCE_DIR})
+ENDMACRO(ADD_UNIT_TEST_SAN)
+
 IF(UNIT_TESTING)
   ENABLE_TESTING()
   ADD_SUBDIRECTORY(tests)
@@ -61,6 +69,10 @@ IF(EXISTS ${json})
 	ADD_LIBRARY(blobmsg_json-static STATIC blobmsg_json.c)
 	SET_TARGET_PROPERTIES(blobmsg_json-static
 			      PROPERTIES OUTPUT_NAME blobmsg_json)
+
+	IF(UNIT_TESTING)
+		ADD_UNIT_TEST_SAN(jshn)
+	ENDIF(UNIT_TESTING)
 
 	ADD_EXECUTABLE(jshn jshn.c)
 	TARGET_LINK_LIBRARIES(jshn blobmsg_json ${json})

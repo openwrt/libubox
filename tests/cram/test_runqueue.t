@@ -12,3 +12,15 @@ check that runqueue is producing expected results:
   [1/1] cancel 'sleep 1'
   [0/1] finish 'sleep 1'
   All done!
+
+  $ test-runqueue-san
+  [1/1] start 'sleep 1'
+  [1/1] cancel 'sleep 1'
+  [0/1] finish 'sleep 1'
+  [1/1] start 'sleep 1'
+  [1/1] cancel 'sleep 1'
+  [0/1] finish 'sleep 1'
+  [1/1] start 'sleep 1'
+  [1/1] cancel 'sleep 1'
+  [0/1] finish 'sleep 1'
+  All done!
