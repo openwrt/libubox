@@ -12,3 +12,7 @@ FOREACH(test_case ${test_cases})
   ADD_UNIT_TEST(${test_case})
   ADD_UNIT_TEST_SAN(${test_case})
 ENDFOREACH(test_case)
+
+IF(CMAKE_C_COMPILER_ID STREQUAL "Clang")
+  ADD_SUBDIRECTORY(fuzz)
+ENDIF()
