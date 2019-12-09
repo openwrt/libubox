@@ -217,6 +217,41 @@ blob_check_type(const void *ptr, unsigned int len, int type)
 	return true;
 }
 
+static int
+blob_parse_attr(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max)
+{
+	int found = 0;
+	int id = blob_id(attr);
+	size_t len = blob_len(attr);
+
+	if (id >= max)
+		return 0;
+
+	if (info) {
+		int type = info[id].type;
+
+		if (type < BLOB_ATTR_LAST) {
+			if (!blob_check_type(blob_data(attr), len, type))
+				return 0;
+		}
+
+		if (info[id].minlen && len < info[id].minlen)
+			return 0;
+
+		if (info[id].maxlen && len > info[id].maxlen)
+			return 0;
+
+		if (info[id].validate && !info[id].validate(&info[id], attr))
+			return 0;
+	}
+
+	if (!data[id])
+		found++;
+
+	data[id] = attr;
+	return found;
+}
+
 int
 blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max)
 {
@@ -226,35 +261,9 @@ blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_at
 
 	memset(data, 0, sizeof(struct blob_attr *) * max);
 	blob_for_each_attr(pos, attr, rem) {
-		int id = blob_id(pos);
-		size_t len = blob_len(pos);
-
-		if (id >= max)
-			continue;
-
-		if (info) {
-			int type = info[id].type;
-
-			if (type < BLOB_ATTR_LAST) {
-				if (!blob_check_type(blob_data(pos), len, type))
-					continue;
-			}
-
-			if (info[id].minlen && len < info[id].minlen)
-				continue;
-
-			if (info[id].maxlen && len > info[id].maxlen)
-				continue;
-
-			if (info[id].validate && !info[id].validate(&info[id], pos))
-				continue;
-		}
-
-		if (!data[id])
-			found++;
-
-		data[id] = pos;
+		found += blob_parse_attr(pos, data, info, max);
 	}
+
 	return found;
 }
 
