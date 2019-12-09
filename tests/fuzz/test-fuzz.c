@@ -64,7 +64,7 @@ static void fuzz_blob_parse(const uint8_t *data, size_t size)
 	struct blob_attr *foo[__FOO_ATTR_MAX];
 	struct blob_attr *buf = (struct blob_attr *)data;
 
-	blob_parse(buf, foo, foo_policy, __FOO_ATTR_MAX);
+	blob_parse_untrusted(buf, size, foo, foo_policy, __FOO_ATTR_MAX);
 }
 
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)

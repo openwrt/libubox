@@ -87,7 +87,7 @@ static int cert_load(const char *certfile, struct list_head *chain)
 
 	bufpt = (struct blob_attr *)filebuf;
 	do {
-		pret = blob_parse(bufpt, certtb, cert_policy, CERT_ATTR_MAX);
+		pret = blob_parse_untrusted(bufpt, len, certtb, cert_policy, CERT_ATTR_MAX);
 		if (pret <= 0)
 			/* no attributes found */
 			break;
