@@ -56,6 +56,8 @@ check that blob_parse is producing expected results:
   cannot parse cert c42ac1c46f1d4e211c735cc7dfad4ff8391110e9
   cannot parse cert crash-1b8fb1be45db3aff7699100f497fb74138f3df4f
   cannot parse cert crash-1b8fb1be45db3aff7699100f497fb74138f3df4f
+  cannot parse cert crash-333757b203a44751d3535f24b05f467183a96d09
+  cannot parse cert crash-333757b203a44751d3535f24b05f467183a96d09
   cannot parse cert crash-4c4d2c3c9ade5da9347534e290305c3b9760f627
   cannot parse cert crash-4c4d2c3c9ade5da9347534e290305c3b9760f627
   cannot parse cert crash-5e9937b197c88bf4e7b7ee2612456cad4cb83f5b

@@ -218,20 +218,33 @@ blob_check_type(const void *ptr, unsigned int len, int type)
 }
 
 static int
-blob_parse_attr(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max)
+blob_parse_attr(struct blob_attr *attr, size_t attr_len, struct blob_attr **data, const struct blob_attr_info *info, int max)
 {
+	int id;
+	size_t len;
 	int found = 0;
-	int id = blob_id(attr);
-	size_t len = blob_len(attr);
+	size_t data_len;
 
+	if (!attr || attr_len < sizeof(struct blob_attr))
+		return 0;
+
+	id = blob_id(attr);
 	if (id >= max)
+		return 0;
+
+	len = blob_raw_len(attr);
+	if (len > attr_len || len < sizeof(struct blob_attr))
+		return 0;
+
+	data_len = blob_len(attr);
+	if (data_len > len)
 		return 0;
 
 	if (info) {
 		int type = info[id].type;
 
 		if (type < BLOB_ATTR_LAST) {
-			if (!blob_check_type(blob_data(attr), len, type))
+			if (!blob_check_type(blob_data(attr), data_len, type))
 				return 0;
 		}
 
@@ -285,7 +298,7 @@ blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_at
 
 	memset(data, 0, sizeof(struct blob_attr *) * max);
 	blob_for_each_attr(pos, attr, rem) {
-		found += blob_parse_attr(pos, data, info, max);
+		found += blob_parse_attr(pos, rem, data, info, max);
 	}
 
 	return found;
