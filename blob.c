@@ -253,6 +253,30 @@ blob_parse_attr(struct blob_attr *attr, struct blob_attr **data, const struct bl
 }
 
 int
+blob_parse_untrusted(struct blob_attr *attr, size_t attr_len, struct blob_attr **data, const struct blob_attr_info *info, int max)
+{
+	struct blob_attr *pos;
+	size_t len = 0;
+	int found = 0;
+	size_t rem;
+
+	if (!attr || attr_len < sizeof(struct blob_attr))
+		return 0;
+
+	len = blob_raw_len(attr);
+	if (len != attr_len)
+		return 0;
+
+	memset(data, 0, sizeof(struct blob_attr *) * max);
+	blob_for_each_attr_len(pos, attr, len, rem) {
+		found += blob_parse_attr(pos, rem, data, info, max);
+	}
+
+	return found;
+}
+
+/* use only on trusted input, otherwise consider blob_parse_untrusted */
+int
 blob_parse(struct blob_attr *attr, struct blob_attr **data, const struct blob_attr_info *info, int max)
 {
 	struct blob_attr *pos;
