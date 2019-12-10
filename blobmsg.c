@@ -35,7 +35,8 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 {
 	const struct blobmsg_hdr *hdr;
 	const char *data;
-	int id, len;
+	size_t len;
+	int id;
 
 	if (blob_len(attr) < sizeof(struct blobmsg_hdr))
 		return false;

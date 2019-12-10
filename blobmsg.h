@@ -86,7 +86,7 @@ static inline void *blobmsg_data(const struct blob_attr *attr)
 	return data;
 }
 
-static inline int blobmsg_data_len(const struct blob_attr *attr)
+static inline size_t blobmsg_data_len(const struct blob_attr *attr)
 {
 	uint8_t *start, *end;
 
@@ -99,7 +99,7 @@ static inline int blobmsg_data_len(const struct blob_attr *attr)
 	return blob_len(attr) - (end - start);
 }
 
-static inline int blobmsg_len(const struct blob_attr *attr)
+static inline size_t blobmsg_len(const struct blob_attr *attr)
 {
 	return blobmsg_data_len(attr);
 }
