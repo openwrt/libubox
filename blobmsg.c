@@ -53,6 +53,9 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 
 	id = blob_id(attr);
 	len = blobmsg_data_len(attr);
+	if (len > blob_raw_len(attr))
+		return false;
+
 	data = blobmsg_data(attr);
 
 	if (id > BLOBMSG_TYPE_LAST)
