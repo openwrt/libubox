@@ -25,12 +25,6 @@ static const int blob_type[__BLOBMSG_TYPE_LAST] = {
 	[BLOBMSG_TYPE_UNSPEC] = BLOB_ATTR_BINARY,
 };
 
-static uint16_t
-blobmsg_namelen(const struct blobmsg_hdr *hdr)
-{
-	return be16_to_cpu(hdr->namelen);
-}
-
 bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 {
 	return blobmsg_check_attr_len(attr, name, blob_raw_len(attr));

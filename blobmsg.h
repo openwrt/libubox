@@ -69,6 +69,11 @@ static inline int blobmsg_type(const struct blob_attr *attr)
 	return blob_id(attr);
 }
 
+static uint16_t blobmsg_namelen(const struct blobmsg_hdr *hdr)
+{
+	return be16_to_cpu(hdr->namelen);
+}
+
 static inline void *blobmsg_data(const struct blob_attr *attr)
 {
 	struct blobmsg_hdr *hdr;
@@ -81,7 +86,7 @@ static inline void *blobmsg_data(const struct blob_attr *attr)
 	data = (char *) blob_data(attr);
 
 	if (blob_is_extended(attr))
-		data += blobmsg_hdrlen(be16_to_cpu(hdr->namelen));
+		data += blobmsg_hdrlen(blobmsg_namelen(hdr));
 
 	return data;
 }
