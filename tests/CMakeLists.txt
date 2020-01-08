@@ -1,4 +1,5 @@
 ADD_SUBDIRECTORY(cram)
+ADD_SUBDIRECTORY(shunit2)
 
 MACRO(ADD_UNIT_TEST name)
   ADD_EXECUTABLE(${name} ${name}.c)
