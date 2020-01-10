@@ -66,9 +66,15 @@ bool blobmsg_add_json_element(struct blob_buf *b, const char *name, json_object 
 	case json_type_boolean:
 		blobmsg_add_u8(b, name, json_object_get_boolean(obj));
 		break;
-	case json_type_int:
-		blobmsg_add_u32(b, name, json_object_get_int(obj));
+	case json_type_int: {
+		int64_t i64 = json_object_get_int64(obj);
+		if (i64 >= INT32_MIN && i64 <= INT32_MAX) {
+			blobmsg_add_u32(b, name, (uint32_t)i64);
+		} else {
+			blobmsg_add_u64(b, name, (uint64_t)i64);
+		}
 		break;
+	}
 	case json_type_double:
 		blobmsg_add_double(b, name, json_object_get_double(obj));
 		break;

@@ -46,8 +46,8 @@ check that blobmsg is producing expected results:
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
-  -2147483648 (i32)
-  2147483647 (i32)
+  -9223372036854775808 (i64)
+  9223372036854775807 (i64)
   133.700000 (dbl)
   }
   Testdata: {
@@ -60,8 +60,8 @@ check that blobmsg is producing expected results:
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
-  \ttaz-min : -2147483648 (i32) (esc)
-  \ttaz-max : 2147483647 (i32) (esc)
+  \ttaz-min : -9223372036854775808 (i64) (esc)
+  \ttaz-max : 9223372036854775807 (i64) (esc)
   \tworld : 2 (str) (esc)
   }
 
@@ -109,8 +109,8 @@ check that blobmsg is producing expected results:
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
-  -2147483648 (i32)
-  2147483647 (i32)
+  -9223372036854775808 (i64)
+  9223372036854775807 (i64)
   133.700000 (dbl)
   }
   Testdata: {
@@ -123,8 +123,8 @@ check that blobmsg is producing expected results:
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
-  \ttaz-min : -2147483648 (i32) (esc)
-  \ttaz-max : 2147483647 (i32) (esc)
+  \ttaz-min : -9223372036854775808 (i64) (esc)
+  \ttaz-max : 9223372036854775807 (i64) (esc)
   \tworld : 2 (str) (esc)
   }
 
@@ -172,8 +172,8 @@ check that blobmsg is producing expected results:
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
-  -2147483648 (i32)
-  2147483647 (i32)
+  -9223372036854775808 (i64)
+  9223372036854775807 (i64)
   133.700000 (dbl)
   }
   Testdata: {
@@ -186,8 +186,8 @@ check that blobmsg is producing expected results:
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
-  \ttaz-min : -2147483648 (i32) (esc)
-  \ttaz-max : 2147483647 (i32) (esc)
+  \ttaz-min : -9223372036854775808 (i64) (esc)
+  \ttaz-max : 9223372036854775807 (i64) (esc)
   \tworld : 2 (str) (esc)
   }
 
@@ -235,8 +235,8 @@ check that blobmsg is producing expected results:
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
-  -2147483648 (i32)
-  2147483647 (i32)
+  -9223372036854775808 (i64)
+  9223372036854775807 (i64)
   133.700000 (dbl)
   }
   Testdata: {
@@ -249,7 +249,7 @@ check that blobmsg is producing expected results:
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
-  \ttaz-min : -2147483648 (i32) (esc)
-  \ttaz-max : 2147483647 (i32) (esc)
+  \ttaz-min : -9223372036854775808 (i64) (esc)
+  \ttaz-max : 9223372036854775807 (i64) (esc)
   \tworld : 2 (str) (esc)
   }
