@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <inttypes.h>
 
 #include "blobmsg.h"
@@ -35,22 +36,22 @@ static void dump_attr_data(struct blob_attr *data, int indent, int next_indent)
 	int type = blobmsg_type(data);
 	switch(type) {
 	case BLOBMSG_TYPE_STRING:
-		indent_printf(indent, "%s\n", blobmsg_get_string(data));
+		indent_printf(indent, "%s (str)\n", blobmsg_get_string(data));
 		break;
 	case BLOBMSG_TYPE_INT8:
-		indent_printf(indent, "%d\n", blobmsg_get_u8(data));
+		indent_printf(indent, "%d (i8)\n", (int8_t) blobmsg_get_u8(data));
 		break;
 	case BLOBMSG_TYPE_INT16:
-		indent_printf(indent, "%d\n", blobmsg_get_u16(data));
+		indent_printf(indent, "%d (i16)\n", (int16_t) blobmsg_get_u16(data));
 		break;
 	case BLOBMSG_TYPE_INT32:
-		indent_printf(indent, "%d\n", blobmsg_get_u32(data));
+		indent_printf(indent, "%d (i32)\n", (int32_t) blobmsg_get_u32(data));
 		break;
 	case BLOBMSG_TYPE_INT64:
-		indent_printf(indent, "%"PRIu64"\n", blobmsg_get_u64(data));
+		indent_printf(indent, "%"PRId64" (i64)\n", (int64_t) blobmsg_get_u64(data));
 		break;
 	case BLOBMSG_TYPE_DOUBLE:
-		indent_printf(indent, "%lf\n", blobmsg_get_double(data));
+		indent_printf(indent, "%lf (dbl)\n", blobmsg_get_double(data));
 		break;
 	case BLOBMSG_TYPE_TABLE:
 	case BLOBMSG_TYPE_ARRAY:
@@ -117,14 +118,30 @@ fill_message(struct blob_buf *buf)
 
 	tbl = blobmsg_open_table(buf, "testdata");
 	blobmsg_add_double(buf, "double", 1.337e2);
-	blobmsg_add_u32(buf, "hello", 1);
+	blobmsg_add_u8(buf, "foo", 0);
+	blobmsg_add_u8(buf, "poo", 100);
+	blobmsg_add_u8(buf, "moo-min", INT8_MIN);
+	blobmsg_add_u8(buf, "moo-max", INT8_MAX);
+	blobmsg_add_u16(buf, "bar-min", INT16_MIN);
+	blobmsg_add_u16(buf, "bar-max", INT16_MAX);
+	blobmsg_add_u32(buf, "baz-min", INT32_MIN);
+	blobmsg_add_u32(buf, "baz-max", INT32_MAX);
+	blobmsg_add_u64(buf, "taz-min", INT64_MIN);
+	blobmsg_add_u64(buf, "taz-max", INT64_MAX);
 	blobmsg_add_string(buf, "world", "2");
 	blobmsg_close_table(buf, tbl);
 
 	tbl = blobmsg_open_array(buf, "list");
-	blobmsg_add_u32(buf, NULL, 0);
-	blobmsg_add_u32(buf, NULL, 1);
-	blobmsg_add_u32(buf, NULL, 2);
+	blobmsg_add_u8(buf, NULL, 0);
+	blobmsg_add_u8(buf, NULL, 100);
+	blobmsg_add_u8(buf, NULL, INT8_MIN);
+	blobmsg_add_u8(buf, NULL, INT8_MAX);
+	blobmsg_add_u16(buf, NULL, INT16_MIN);
+	blobmsg_add_u16(buf, NULL, INT16_MAX);
+	blobmsg_add_u32(buf, NULL, INT32_MIN);
+	blobmsg_add_u32(buf, NULL, INT32_MAX);
+	blobmsg_add_u64(buf, NULL, INT64_MIN);
+	blobmsg_add_u64(buf, NULL, INT64_MAX);
 	blobmsg_add_double(buf, "double", 1.337e2);
 	blobmsg_close_table(buf, tbl);
 }
@@ -136,13 +153,21 @@ int main(int argc, char **argv)
 
 	blobmsg_buf_init(&buf);
 	fill_message(&buf);
+	fprintf(stderr, "[*] blobmsg dump:\n");
 	dump_message(&buf);
 
 	json = blobmsg_format_json(buf.head, true);
 	if (!json)
 		exit(EXIT_FAILURE);
 
-	fprintf(stderr, "json: %s\n", json);
+	fprintf(stderr, "\n[*] blobmsg to json: %s\n", json);
+
+	blobmsg_buf_init(&buf);
+	if (!blobmsg_add_json_from_string(&buf, json))
+		exit(EXIT_FAILURE);
+
+	fprintf(stderr, "\n[*] blobmsg from json:\n");
+	dump_message(&buf);
 
 	if (buf.buf)
 		free(buf.buf);
