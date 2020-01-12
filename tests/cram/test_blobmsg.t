@@ -33,7 +33,7 @@ check that blobmsg is producing expected results:
   \tworld : 2 (str) (esc)
   }
   
-  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
+  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":-32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,-32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
   
   [*] blobmsg from json:
   Message: Hello, world!
@@ -42,7 +42,7 @@ check that blobmsg is producing expected results:
   1 (i8)
   1 (i8)
   1 (i8)
-  32768 (i32)
+  -32768 (i32)
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
@@ -56,7 +56,7 @@ check that blobmsg is producing expected results:
   \tpoo : 1 (i8) (esc)
   \tmoo-min : 1 (i8) (esc)
   \tmoo-max : 1 (i8) (esc)
-  \tbar-min : 32768 (i32) (esc)
+  \tbar-min : -32768 (i32) (esc)
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
@@ -96,7 +96,7 @@ check that blobmsg is producing expected results:
   \tworld : 2 (str) (esc)
   }
   
-  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
+  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":-32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,-32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
   
   [*] blobmsg from json:
   Message: Hello, world!
@@ -105,7 +105,7 @@ check that blobmsg is producing expected results:
   1 (i8)
   1 (i8)
   1 (i8)
-  32768 (i32)
+  -32768 (i32)
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
@@ -119,7 +119,7 @@ check that blobmsg is producing expected results:
   \tpoo : 1 (i8) (esc)
   \tmoo-min : 1 (i8) (esc)
   \tmoo-max : 1 (i8) (esc)
-  \tbar-min : 32768 (i32) (esc)
+  \tbar-min : -32768 (i32) (esc)
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
@@ -159,7 +159,7 @@ check that blobmsg is producing expected results:
   \tworld : 2 (str) (esc)
   }
   
-  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
+  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":-32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,-32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
   
   [*] blobmsg from json:
   Message: Hello, world!
@@ -168,7 +168,7 @@ check that blobmsg is producing expected results:
   1 (i8)
   1 (i8)
   1 (i8)
-  32768 (i32)
+  -32768 (i32)
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
@@ -182,7 +182,7 @@ check that blobmsg is producing expected results:
   \tpoo : 1 (i8) (esc)
   \tmoo-min : 1 (i8) (esc)
   \tmoo-max : 1 (i8) (esc)
-  \tbar-min : 32768 (i32) (esc)
+  \tbar-min : -32768 (i32) (esc)
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
@@ -222,7 +222,7 @@ check that blobmsg is producing expected results:
   \tworld : 2 (str) (esc)
   }
   
-  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
+  [*] blobmsg to json: {"message":"Hello, world!","testdata":{"double":133.700000,"foo":false,"poo":true,"moo-min":true,"moo-max":true,"bar-min":-32768,"bar-max":32767,"baz-min":-2147483648,"baz-max":2147483647,"taz-min":-9223372036854775808,"taz-max":9223372036854775807,"world":"2"},"list":[false,true,true,true,-32768,32767,-2147483648,2147483647,-9223372036854775808,9223372036854775807,133.700000]}
   
   [*] blobmsg from json:
   Message: Hello, world!
@@ -231,7 +231,7 @@ check that blobmsg is producing expected results:
   1 (i8)
   1 (i8)
   1 (i8)
-  32768 (i32)
+  -32768 (i32)
   32767 (i32)
   -2147483648 (i32)
   2147483647 (i32)
@@ -245,7 +245,7 @@ check that blobmsg is producing expected results:
   \tpoo : 1 (i8) (esc)
   \tmoo-min : 1 (i8) (esc)
   \tmoo-max : 1 (i8) (esc)
-  \tbar-min : 32768 (i32) (esc)
+  \tbar-min : -32768 (i32) (esc)
   \tbar-max : 32767 (i32) (esc)
   \tbaz-min : -2147483648 (i32) (esc)
   \tbaz-max : 2147483647 (i32) (esc)
