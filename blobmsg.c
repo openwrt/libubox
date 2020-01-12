@@ -30,16 +30,38 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 	return blobmsg_check_attr_len(attr, name, blob_raw_len(attr));
 }
 
+static const struct blobmsg_hdr* blobmsg_hdr_from_blob(const struct blob_attr *attr, size_t len)
+{
+	if (len < sizeof(struct blob_attr) + sizeof(struct blobmsg_hdr))
+		return NULL;
+
+	return blob_data(attr);
+}
+
+static bool blobmsg_hdr_valid_namelen(const struct blobmsg_hdr *hdr, size_t len)
+{
+	if (len < sizeof(struct blob_attr) + sizeof(struct blobmsg_hdr) + blobmsg_namelen(hdr) + 1)
+		return false;
+
+	return true;
+}
+
 static bool blobmsg_check_name(const struct blob_attr *attr, size_t len, bool name)
 {
 	char *limit = (char *) attr + len;
 	const struct blobmsg_hdr *hdr;
 
-	hdr = blob_data(attr);
+	hdr = blobmsg_hdr_from_blob(attr, len);
+	if (!hdr)
+		return false;
+
 	if (name && !hdr->namelen)
 		return false;
 
-	if ((char *) hdr->name + blobmsg_namelen(hdr) > limit)
+	if (name && !blobmsg_hdr_valid_namelen(hdr, len))
+		return false;
+
+	if ((char *) hdr->name + blobmsg_namelen(hdr) + 1 > limit)
 		return false;
 
 	if (blobmsg_namelen(hdr) > (blob_len(attr) - sizeof(struct blobmsg_hdr)))
@@ -72,9 +94,6 @@ bool blobmsg_check_attr_len(const struct blob_attr *attr, bool name, size_t len)
 	const char *data;
 	size_t data_len;
 	int id;
-
-	if (len < sizeof(struct blob_attr))
-		return false;
 
 	if (!blobmsg_check_name(attr, len, name))
 		return false;
@@ -170,11 +189,10 @@ int blobmsg_parse_array(const struct blobmsg_policy *policy, int policy_len,
 	return 0;
 }
 
-
 int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
                   struct blob_attr **tb, void *data, unsigned int len)
 {
-	struct blobmsg_hdr *hdr;
+	const struct blobmsg_hdr *hdr;
 	struct blob_attr *attr;
 	uint8_t *pslen;
 	int i;
@@ -191,7 +209,13 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 	}
 
 	__blob_for_each_attr(attr, data, len) {
-		hdr = blob_data(attr);
+		hdr = blobmsg_hdr_from_blob(attr, len);
+		if (!hdr)
+			return -1;
+
+		if (!blobmsg_hdr_valid_namelen(hdr, len))
+			return -1;
+
 		for (i = 0; i < policy_len; i++) {
 			if (!policy[i].name)
 				continue;
