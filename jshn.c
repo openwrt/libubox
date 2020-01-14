@@ -68,7 +68,7 @@ static int add_json_array(struct array_list *a)
 	int ret;
 
 	for (i = 0, len = array_list_length(a); i < len; i++) {
-		sprintf(seq, "%d", i);
+		snprintf(seq, sizeof(seq), "%d", i);
 		ret = add_json_element(seq, array_list_get_idx(a, i));
 		if (ret)
 			return ret;
@@ -200,25 +200,27 @@ static char *getenv_avl(const char *key)
 static char *get_keys(const char *prefix)
 {
 	char *keys;
+	size_t len = var_prefix_len + strlen(prefix) + sizeof("K_") + 1;
 
-	keys = alloca(var_prefix_len + strlen(prefix) + sizeof("K_") + 1);
-	sprintf(keys, "%sK_%s", var_prefix, prefix);
+	keys = alloca(len);
+	snprintf(keys, len, "%sK_%s", var_prefix, prefix);
 	return getenv_avl(keys);
 }
 
 static void get_var(const char *prefix, const char **name, char **var, char **type)
 {
 	char *tmpname, *varname;
+	size_t len = var_prefix_len + strlen(prefix) + 1 + strlen(*name) + 1 + sizeof("T_");
 
-	tmpname = alloca(var_prefix_len + strlen(prefix) + 1 + strlen(*name) + 1 + sizeof("T_"));
+	tmpname = alloca(len);
 
-	sprintf(tmpname, "%s%s_%s", var_prefix, prefix, *name);
+	snprintf(tmpname, len, "%s%s_%s", var_prefix, prefix, *name);
 	*var = getenv_avl(tmpname);
 
-	sprintf(tmpname, "%sT_%s_%s", var_prefix, prefix, *name);
+	snprintf(tmpname, len, "%sT_%s_%s", var_prefix, prefix, *name);
 	*type = getenv_avl(tmpname);
 
-	sprintf(tmpname, "%sN_%s_%s", var_prefix, prefix, *name);
+	snprintf(tmpname, len, "%sN_%s_%s", var_prefix, prefix, *name);
 	varname = getenv_avl(tmpname);
 	if (varname)
 		*name = varname;
