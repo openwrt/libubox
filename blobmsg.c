@@ -290,10 +290,17 @@ int blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, 
 	len = vsnprintf(&cbuf, sizeof(cbuf), format, arg2);
 	va_end(arg2);
 
+	if (len < 0)
+		return -1;
+
 	sbuf = blobmsg_alloc_string_buffer(buf, name, len + 1);
 	if (!sbuf)
 		return -1;
-	ret = vsprintf(sbuf, format, arg);
+
+	ret = vsnprintf(sbuf, len + 1, format, arg);
+	if (ret < 0)
+		return -1;
+
 	blobmsg_add_string_buffer(buf);
 
 	return ret;
