@@ -208,7 +208,7 @@ static void blobmsg_format_string(struct strbuf *s, const char *str)
 		buf[1] = escape;
 
 		if (escape == 'u') {
-			sprintf(buf + 4, "%02x", (unsigned char) *p);
+			snprintf(buf + 4, sizeof(buf) - 4, "%02x", (unsigned char) *p);
 			len = 6;
 		} else {
 			len = 2;
@@ -225,7 +225,7 @@ static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, i
 static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, bool without_name, bool head)
 {
 	const char *data_str;
-	char buf[32];
+	char buf[317];
 	void *data;
 	int len;
 
@@ -249,22 +249,22 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 	data_str = buf;
 	switch(blob_id(attr)) {
 	case BLOBMSG_TYPE_UNSPEC:
-		sprintf(buf, "null");
+		snprintf(buf, sizeof(buf), "null");
 		break;
 	case BLOBMSG_TYPE_BOOL:
-		sprintf(buf, "%s", *(uint8_t *)data ? "true" : "false");
+		snprintf(buf, sizeof(buf), "%s", *(uint8_t *)data ? "true" : "false");
 		break;
 	case BLOBMSG_TYPE_INT16:
-		sprintf(buf, "%d", (int16_t) be16_to_cpu(*(uint16_t *)data));
+		snprintf(buf, sizeof(buf), "%" PRId16, (int16_t) be16_to_cpu(*(uint16_t *)data));
 		break;
 	case BLOBMSG_TYPE_INT32:
-		sprintf(buf, "%d", (int32_t) be32_to_cpu(*(uint32_t *)data));
+		snprintf(buf, sizeof(buf), "%" PRId32, (int32_t) be32_to_cpu(*(uint32_t *)data));
 		break;
 	case BLOBMSG_TYPE_INT64:
-		sprintf(buf, "%" PRId64, (int64_t) be64_to_cpu(*(uint64_t *)data));
+		snprintf(buf, sizeof(buf), "%" PRId64, (int64_t) be64_to_cpu(*(uint64_t *)data));
 		break;
 	case BLOBMSG_TYPE_DOUBLE:
-		sprintf(buf, "%lf", blobmsg_get_double(attr));
+		snprintf(buf, sizeof(buf), "%lf", blobmsg_get_double(attr));
 		break;
 	case BLOBMSG_TYPE_STRING:
 		blobmsg_format_string(s, data);

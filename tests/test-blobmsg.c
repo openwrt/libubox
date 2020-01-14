@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <float.h>
+#include <limits.h>
 #include <stdint.h>
 #include <inttypes.h>
 
@@ -117,7 +119,8 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_string(buf, "message", "Hello, world!");
 
 	tbl = blobmsg_open_table(buf, "testdata");
-	blobmsg_add_double(buf, "double", 1.337e2);
+	blobmsg_add_double(buf, "dbl-min", DBL_MIN);
+	blobmsg_add_double(buf, "dbl-max", DBL_MAX);
 	blobmsg_add_u8(buf, "foo", 0);
 	blobmsg_add_u8(buf, "poo", 100);
 	blobmsg_add_u8(buf, "moo-min", INT8_MIN);
@@ -142,7 +145,8 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_u32(buf, NULL, INT32_MAX);
 	blobmsg_add_u64(buf, NULL, INT64_MIN);
 	blobmsg_add_u64(buf, NULL, INT64_MAX);
-	blobmsg_add_double(buf, "double", 1.337e2);
+	blobmsg_add_double(buf, NULL, DBL_MIN);
+	blobmsg_add_double(buf, NULL, DBL_MAX);
 	blobmsg_close_table(buf, tbl);
 }
 
