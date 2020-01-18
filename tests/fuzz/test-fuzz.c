@@ -91,10 +91,18 @@ static void fuzz_blob_parse(const uint8_t *data, size_t size)
 	blob_parse_untrusted(buf, size, foo, foo_policy, __FOO_ATTR_MAX);
 }
 
-int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
+int LLVMFuzzerTestOneInput(const uint8_t *input, size_t size)
 {
+	uint8_t *data;
+
+	data = malloc(size);
+	if (!data)
+		return -1;
+
+	memcpy(data, input, size);
 	fuzz_blob_parse(data, size);
 	fuzz_blobmsg_parse(data, size);
+	free(data);
 
 	return 0;
 }

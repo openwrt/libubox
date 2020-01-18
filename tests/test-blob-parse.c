@@ -68,7 +68,7 @@ static int cert_load(const char *certfile, struct list_head *chain)
 	struct blob_attr *certtb[CERT_ATTR_MAX];
 	struct blob_attr *bufpt;
 	struct cert_object *cobj;
-	char filebuf[CERT_BUF_LEN];
+	char *filebuf = NULL;
 	int ret = 0, pret = 0;
 	size_t len, pos = 0;
 
@@ -76,14 +76,22 @@ static int cert_load(const char *certfile, struct list_head *chain)
 	if (!f)
 		return 1;
 
-	len = fread(&filebuf, 1, CERT_BUF_LEN - 1, f);
-	if (len < 64)
+	filebuf = malloc(CERT_BUF_LEN+1);
+	if (!filebuf)
 		return 1;
+
+	len = fread(filebuf, 1, CERT_BUF_LEN, f);
+	if (len < 64) {
+		free(filebuf);
+		return 1;
+	}
 
 	ret = ferror(f) || !feof(f);
 	fclose(f);
-	if (ret)
+	if (ret) {
+		free(filebuf);
 		return 1;
+	}
 
 	bufpt = (struct blob_attr *)filebuf;
 	do {
@@ -112,6 +120,7 @@ static int cert_load(const char *certfile, struct list_head *chain)
 	/* repeat parsing while there is still enough remaining data in buffer */
 	} while(len > pos + sizeof(struct blob_attr) && (bufpt = blob_next(bufpt)));
 
+	free(filebuf);
 	return (ret <= 0);
 }
 

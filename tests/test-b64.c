@@ -1,20 +1,25 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "utils.h"
 
+#define BUF_LEN 255
+
 static void test_b64_encode(const char *src)
 {
-	char dst[255] = {0};
-	int r = b64_encode(src, strlen(src), dst, sizeof(dst));
+	char *dst = malloc(BUF_LEN+1);
+	int r = b64_encode(src, strlen(src), dst, BUF_LEN);
 	fprintf(stdout, "%d %s\n", r, dst);
+	free(dst);
 }
 
 static void test_b64_decode(const char *src)
 {
-	char dst[255] = {0};
-	int r = b64_decode(src, dst, sizeof(dst));
+	char *dst = malloc(BUF_LEN+1);
+	int r = b64_decode(src, dst, BUF_LEN);
 	fprintf(stdout, "%d %s\n", r, dst);
+	free(dst);
 }
 
 int main()

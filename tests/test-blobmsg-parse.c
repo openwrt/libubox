@@ -40,18 +40,22 @@ static void test_blobmsg(const char *filename)
 {
 #define BUF_LEN 256
 	int r = 0;
-	FILE *fd = NULL;
 	size_t len = 0;
-	char buf[BUF_LEN+1] = { 0 };
+	FILE *fd = NULL;
+	char *buf = NULL;
 	struct blob_attr *tb[__FOO_MAX];
 
 	fd = fopen(filename, "r");
 	if (!fd) {
-		fprintf(stderr, "unable to open %s", filename);
+		fprintf(stderr, "unable to open %s\n", filename);
 		return;
 	}
 
-	len = fread(&buf, 1, BUF_LEN, fd);
+	buf = malloc(BUF_LEN+1);
+	if (!buf)
+		return;
+
+	len = fread(buf, 1, BUF_LEN, fd);
 	fclose(fd);
 
 	r = blobmsg_parse(foo_policy, ARRAY_SIZE(foo_policy), tb, buf, len);
@@ -59,6 +63,8 @@ static void test_blobmsg(const char *filename)
 
 	r = blobmsg_parse_array(foo_policy, ARRAY_SIZE(foo_policy), tb, buf, len);
 	dump_result("blobmsg_parse_array", r, filename, tb);
+
+	free(buf);
 }
 
 int main(int argc, char *argv[])

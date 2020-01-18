@@ -63,9 +63,9 @@ static void test_blobmsg_procd_instance(const char *filename)
 {
 #define BUF_LEN 2048
 	int r = 0;
-	FILE *fd = NULL;
 	size_t len = 0;
-	char buf[BUF_LEN+1] = { 0 };
+	FILE *fd = NULL;
+	char *buf = NULL;
 	struct blob_attr *tb[__INSTANCE_ATTR_MAX];
 	const char *fname = basename((char *) filename);
 
@@ -75,26 +75,32 @@ static void test_blobmsg_procd_instance(const char *filename)
 		return;
 	}
 
-	len = fread(&buf, 1, BUF_LEN, fd);
+	buf = malloc(BUF_LEN+1);
+	if (!buf)
+		return;
+
+	len = fread(buf, 1, BUF_LEN, fd);
 	fclose(fd);
 
 	r = blobmsg_parse(instance_attr, __INSTANCE_ATTR_MAX, tb, buf, len);
 	if (r)
-		return;
+		goto out;
 
 	if (!tb[INSTANCE_ATTR_COMMAND] || !tb[INSTANCE_ATTR_NICE] || !tb[INSTANCE_ATTR_STDERR])
-		return;
+		goto out;
 
 	if (!blobmsg_check_attr_list(tb[INSTANCE_ATTR_COMMAND], BLOBMSG_TYPE_STRING))
-		return;
+		goto out;
 
 	if (blobmsg_get_u32(tb[INSTANCE_ATTR_NICE]) != 19)
-		return;
+		goto out;
 
 	if (!blobmsg_get_bool(tb[INSTANCE_ATTR_STDERR]))
-		return;
+		goto out;
 
 	fprintf(stderr, "%s: OK\n", fname);
+out:
+	free(buf);
 }
 
 int main(int argc, char *argv[])
