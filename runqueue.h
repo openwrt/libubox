@@ -63,7 +63,7 @@ struct runqueue_task_type {
 
 	/*
 	 * called to kill a task. must not make any calls to runqueue_task_complete,
-	 * it has already been removed from the list.
+	 * which will be called after this returns.
 	 */
 	void (*kill)(struct runqueue *q, struct runqueue_task *t);
 };

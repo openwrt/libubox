@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -26,8 +27,10 @@
 static struct runqueue q;
 
 struct sleeper {
-	struct runqueue_process proc;
 	int val;
+	bool kill;
+	struct uloop_timeout t;
+	struct runqueue_process proc;
 };
 
 static void q_empty(struct runqueue *q)
@@ -36,13 +39,19 @@ static void q_empty(struct runqueue *q)
 	uloop_end();
 }
 
+static const char* sleeper_type(struct sleeper *s)
+{
+	return s->kill ? "killer" : "sleeper";
+}
+
 static void q_sleep_run(struct runqueue *q, struct runqueue_task *t)
 {
 	struct sleeper *s = container_of(t, struct sleeper, proc.task);
 	char str[32];
 	pid_t pid;
 
-	fprintf(stderr, "[%d/%d] start 'sleep %d'\n", q->running_tasks, q->max_running_tasks, s->val);
+	fprintf(stderr, "[%d/%d] start 'sleep %d' (%s)\n", q->running_tasks,
+			q->max_running_tasks, s->val, sleeper_type(s));
 
 	pid = fork();
 	if (pid < 0)
@@ -62,7 +71,8 @@ static void q_sleep_cancel(struct runqueue *q, struct runqueue_task *t, int type
 {
 	struct sleeper *s = container_of(t, struct sleeper, proc.task);
 
-	fprintf(stderr, "[%d/%d] cancel 'sleep %d'\n", q->running_tasks, q->max_running_tasks, s->val);
+	fprintf(stderr, "[%d/%d] cancel 'sleep %d' (%s)\n", q->running_tasks,
+			q->max_running_tasks, s->val, sleeper_type(s));
 	runqueue_process_cancel_cb(q, t, type);
 }
 
@@ -70,8 +80,38 @@ static void q_sleep_complete(struct runqueue *q, struct runqueue_task *p)
 {
 	struct sleeper *s = container_of(p, struct sleeper, proc.task);
 
-	fprintf(stderr, "[%d/%d] finish 'sleep %d'\n", q->running_tasks, q->max_running_tasks, s->val);
+	fprintf(stderr, "[%d/%d] finish 'sleep %d' (%s) \n", q->running_tasks,
+			q->max_running_tasks, s->val, sleeper_type(s));
 	free(s);
+}
+
+static void my_runqueue_process_kill_cb(struct runqueue *q, struct runqueue_task *p)
+{
+	struct sleeper *s = container_of(p, struct sleeper, proc.task);
+
+	fprintf(stderr, "[%d/%d] killing process (%s)\n", q->running_tasks,
+			q->max_running_tasks, sleeper_type(s));
+	runqueue_process_kill_cb(q, p);
+}
+
+static void timer_cb(struct uloop_timeout *t)
+{
+	struct sleeper *s = container_of(t, struct sleeper, t);
+	if (s->kill)
+		runqueue_task_kill(&s->proc.task);
+}
+
+static struct sleeper* create_sleeper(int val, const struct runqueue_task_type *type, bool kill)
+{
+	struct sleeper *s = calloc(1, sizeof(*s));
+	s->kill = kill;
+	s->t.cb = timer_cb;
+	s->proc.task.type = type;
+	s->proc.task.run_timeout = 500;
+	s->proc.task.complete = q_sleep_complete;
+	s->val = val;
+
+	return s;
 }
 
 static void add_sleeper(int val)
@@ -81,13 +121,19 @@ static void add_sleeper(int val)
 		.cancel = q_sleep_cancel,
 		.kill = runqueue_process_kill_cb,
 	};
-	struct sleeper *s;
 
-	s = calloc(1, sizeof(*s));
-	s->proc.task.type = &sleeper_type;
-	s->proc.task.run_timeout = 500;
-	s->proc.task.complete = q_sleep_complete;
-	s->val = val;
+	static const struct runqueue_task_type killer_type = {
+		.run = q_sleep_run,
+		.cancel = q_sleep_cancel,
+		.kill = my_runqueue_process_kill_cb,
+	};
+
+	struct sleeper *k = create_sleeper(val, &killer_type, true);
+	uloop_timeout_set(&k->t, 100);
+	uloop_timeout_add(&k->t);
+	runqueue_task_add(&q, &k->proc.task, false);
+
+	struct sleeper *s = create_sleeper(val, &sleeper_type, false);
 	runqueue_task_add(&q, &s->proc.task, false);
 }
 
@@ -105,6 +151,7 @@ int main(int argc, char **argv)
 	add_sleeper(1);
 	add_sleeper(1);
 	add_sleeper(1);
+
 	uloop_run();
 	uloop_done();
 
