@@ -56,8 +56,8 @@ struct runqueue_task_type {
 	 * called to request cancelling a task
 	 *
 	 * int type is used as an optional hint for the method to be used when
-	 * cancelling the task, e.g. a signal number for processes. Calls
-	 * runqueue_task_complete when done.
+	 * cancelling the task, e.g. a signal number for processes. The cancel
+	 * callback should call runqueue_task_complete when done.
 	 */
 	void (*cancel)(struct runqueue *q, struct runqueue_task *t, int type);
 
