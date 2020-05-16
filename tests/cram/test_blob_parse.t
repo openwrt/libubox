@@ -21,6 +21,29 @@ check that blob_parse is producing expected results:
   }
   ---
 
+  $ valgrind --quiet --leak-check=full test-blob-parse $TEST_INPUTS/signature.ucert
+  === CHAIN ELEMENT 01 ===
+  signature:
+  ---
+  untrusted comment: signed by key ca85add129e64bab
+  RWTKha3RKeZLq0Sb8kCH9p/3BcFFud8rJnZiRICyRNhjbbpeZSwO2VhkwGaMd7ujW2/YSvT3O67pB0QguV6czgpP5kLX4AKBaQ4=
+  ---
+  payload:
+  ---
+  "ucert": {
+  \t"certtype": 1, (esc)
+  \t"validfrom": 1588532405, (esc)
+  \t"expiresat": 1620068405, (esc)
+  \t"pubkey": "untrusted comment: Local build key\\nRWTKha3RKeZLq1EaPsqvnXu+FqLMHZIS7nvDgwjpRo69j+th6eihGvQo\\n" (esc)
+  }
+  ---
+  === CHAIN ELEMENT 02 ===
+  signature:
+  ---
+  untrusted comment: signed by key ca85add129e64bab
+  RWTKha3RKeZLq9VW9CIMyumCQ4J0iFPLQYXr/YvUhw0OTrwpSh2XpKaRZQNZCXfO8ooMOCvG2TPor2veDjskHP1R2RGPIHp57wA=
+  ---
+
   $ valgrind --quiet --leak-check=full test-blob-parse $TEST_INPUTS/invalid.ucert
   cannot parse cert invalid.ucert
 
@@ -39,6 +62,29 @@ check that blob_parse is producing expected results:
   \t"expiresat": 1577724410, (esc)
   \t"pubkey": "untrusted comment: Local build key\\nRWSEv8iKFxZld6vicE1icWhYNfEV9PM7C9MKUKl+YNEKB+PdAWGDF5Z9\\n" (esc)
   }
+  ---
+
+  $ test-blob-parse-san $TEST_INPUTS/signature.ucert
+  === CHAIN ELEMENT 01 ===
+  signature:
+  ---
+  untrusted comment: signed by key ca85add129e64bab
+  RWTKha3RKeZLq0Sb8kCH9p/3BcFFud8rJnZiRICyRNhjbbpeZSwO2VhkwGaMd7ujW2/YSvT3O67pB0QguV6czgpP5kLX4AKBaQ4=
+  ---
+  payload:
+  ---
+  "ucert": {
+  \t"certtype": 1, (esc)
+  \t"validfrom": 1588532405, (esc)
+  \t"expiresat": 1620068405, (esc)
+  \t"pubkey": "untrusted comment: Local build key\\nRWTKha3RKeZLq1EaPsqvnXu+FqLMHZIS7nvDgwjpRo69j+th6eihGvQo\\n" (esc)
+  }
+  ---
+  === CHAIN ELEMENT 02 ===
+  signature:
+  ---
+  untrusted comment: signed by key ca85add129e64bab
+  RWTKha3RKeZLq9VW9CIMyumCQ4J0iFPLQYXr/YvUhw0OTrwpSh2XpKaRZQNZCXfO8ooMOCvG2TPor2veDjskHP1R2RGPIHp57wA=
   ---
 
   $ test-blob-parse-san $TEST_INPUTS/invalid.ucert

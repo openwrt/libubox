@@ -277,7 +277,7 @@ blob_parse_untrusted(struct blob_attr *attr, size_t attr_len, struct blob_attr *
 		return 0;
 
 	len = blob_raw_len(attr);
-	if (len != attr_len)
+	if (attr_len < len)
 		return 0;
 
 	memset(data, 0, sizeof(struct blob_attr *) * max);
