@@ -129,7 +129,7 @@ static void add_sleeper(int val)
 	};
 
 	struct sleeper *k = create_sleeper(val, &killer_type, true);
-	uloop_timeout_set(&k->t, 100);
+	uloop_timeout_set(&k->t, 10);
 	uloop_timeout_add(&k->t);
 	runqueue_task_add(&q, &k->proc.task, false);
 
