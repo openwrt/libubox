@@ -117,16 +117,18 @@ int blobmsg_check_array(const struct blob_attr *attr, int type)
 	return blobmsg_check_array_len(attr, type, blob_len(attr));
 }
 
-int blobmsg_check_array_len(const struct blob_attr *attr, int type, size_t len)
+int blobmsg_check_array_len(const struct blob_attr *attr, int type,
+			    size_t blob_len)
 {
 	struct blob_attr *cur;
+	size_t rem;
 	bool name;
 	int size = 0;
 
 	if (type > BLOBMSG_TYPE_LAST)
 		return -1;
 
-	if (!blobmsg_check_attr_len(attr, false, len))
+	if (!blobmsg_check_attr_len(attr, false, blob_len))
 		return -1;
 
 	switch (blobmsg_type(attr)) {
@@ -140,11 +142,11 @@ int blobmsg_check_array_len(const struct blob_attr *attr, int type, size_t len)
 		return -1;
 	}
 
-	__blobmsg_for_each_attr(cur, attr, len) {
+	blobmsg_for_each_attr(cur, attr, rem) {
 		if (type != BLOBMSG_TYPE_UNSPEC && blobmsg_type(cur) != type)
 			return -1;
 
-		if (!blobmsg_check_attr_len(cur, name, len))
+		if (!blobmsg_check_attr_len(cur, name, rem))
 			return -1;
 
 		size++;
