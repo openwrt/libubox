@@ -114,7 +114,7 @@ bool blobmsg_check_attr_len(const struct blob_attr *attr, bool name, size_t len)
 
 int blobmsg_check_array(const struct blob_attr *attr, int type)
 {
-	return blobmsg_check_array_len(attr, type, blob_len(attr));
+	return blobmsg_check_array_len(attr, type, blob_raw_len(attr));
 }
 
 int blobmsg_check_array_len(const struct blob_attr *attr, int type,
