@@ -48,8 +48,8 @@ static bool blobmsg_hdr_valid_namelen(const struct blobmsg_hdr *hdr, size_t len)
 
 static bool blobmsg_check_name(const struct blob_attr *attr, size_t len, bool name)
 {
-	char *limit = (char *) attr + len;
 	const struct blobmsg_hdr *hdr;
+	uint16_t namelen;
 
 	hdr = blobmsg_hdr_from_blob(attr, len);
 	if (!hdr)
@@ -58,16 +58,11 @@ static bool blobmsg_check_name(const struct blob_attr *attr, size_t len, bool na
 	if (name && !hdr->namelen)
 		return false;
 
-	if (name && !blobmsg_hdr_valid_namelen(hdr, len))
+	namelen = blobmsg_namelen(hdr);
+	if (blob_len(attr) < (size_t)blobmsg_hdrlen(namelen))
 		return false;
 
-	if ((char *) hdr->name + blobmsg_namelen(hdr) + 1 > limit)
-		return false;
-
-	if (blobmsg_namelen(hdr) > (blob_len(attr) - sizeof(struct blobmsg_hdr)))
-		return false;
-
-	if (hdr->name[blobmsg_namelen(hdr)] != 0)
+	if (hdr->name[namelen] != 0)
 		return false;
 
 	return true;
