@@ -30,31 +30,18 @@ bool blobmsg_check_attr(const struct blob_attr *attr, bool name)
 	return blobmsg_check_attr_len(attr, name, blob_raw_len(attr));
 }
 
-static const struct blobmsg_hdr* blobmsg_hdr_from_blob(const struct blob_attr *attr, size_t len)
-{
-	if (len < sizeof(struct blob_attr) + sizeof(struct blobmsg_hdr))
-		return NULL;
-
-	return blob_data(attr);
-}
-
-static bool blobmsg_hdr_valid_namelen(const struct blobmsg_hdr *hdr, size_t len)
-{
-	if (len < sizeof(struct blob_attr) + sizeof(struct blobmsg_hdr) + blobmsg_namelen(hdr) + 1)
-		return false;
-
-	return true;
-}
-
-static bool blobmsg_check_name(const struct blob_attr *attr, size_t len, bool name)
+static bool blobmsg_check_name(const struct blob_attr *attr, bool name)
 {
 	const struct blobmsg_hdr *hdr;
 	uint16_t namelen;
 
-	hdr = blobmsg_hdr_from_blob(attr, len);
-	if (!hdr)
+	if (!blob_is_extended(attr))
+		return !name;
+
+	if (blob_len(attr) < sizeof(struct blobmsg_hdr))
 		return false;
 
+	hdr = (const struct blobmsg_hdr *)blob_data(attr);
 	if (name && !hdr->namelen)
 		return false;
 
@@ -68,29 +55,20 @@ static bool blobmsg_check_name(const struct blob_attr *attr, size_t len, bool na
 	return true;
 }
 
-static const char* blobmsg_check_data(const struct blob_attr *attr, size_t len, size_t *data_len)
-{
-	char *limit = (char *) attr + len;
-	const char *data;
-
-	*data_len = blobmsg_data_len(attr);
-	if (*data_len > blob_raw_len(attr))
-		return NULL;
-
-	data = blobmsg_data(attr);
-	if (data + *data_len > limit)
-		return NULL;
-
-	return data;
-}
-
 bool blobmsg_check_attr_len(const struct blob_attr *attr, bool name, size_t len)
 {
 	const char *data;
 	size_t data_len;
 	int id;
 
-	if (!blobmsg_check_name(attr, len, name))
+	if (len < sizeof(struct blob_attr))
+		return false;
+
+	data_len = blob_raw_len(attr);
+	if (data_len < sizeof(struct blob_attr) || data_len > len)
+		return false;
+
+	if (!blobmsg_check_name(attr, name))
 		return false;
 
 	id = blob_id(attr);
@@ -100,9 +78,8 @@ bool blobmsg_check_attr_len(const struct blob_attr *attr, bool name, size_t len)
 	if (!blob_type[id])
 		return true;
 
-	data = blobmsg_check_data(attr, len, &data_len);
-	if (!data)
-		return false;
+	data = blobmsg_data(attr);
+	data_len = blobmsg_data_len(attr);
 
 	return blob_check_type(data, data_len, blob_type[id]);
 }
@@ -206,13 +183,13 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 	}
 
 	__blob_for_each_attr(attr, data, len) {
-		hdr = blobmsg_hdr_from_blob(attr, len);
-		if (!hdr)
+		if (!blobmsg_check_attr_len(attr, false, len))
 			return -1;
 
-		if (!blobmsg_hdr_valid_namelen(hdr, len))
-			return -1;
+		if (!blob_is_extended(attr))
+			continue;
 
+		hdr = blob_data(attr);
 		for (i = 0; i < policy_len; i++) {
 			if (!policy[i].name)
 				continue;
@@ -223,9 +200,6 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 
 			if (blobmsg_namelen(hdr) != pslen[i])
 				continue;
-
-			if (!blobmsg_check_attr_len(attr, true, len))
-				return -1;
 
 			if (tb[i])
 				continue;
