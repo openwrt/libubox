@@ -122,6 +122,8 @@ check that blob_parse is producing expected results:
   cannot parse cert crash-d0f3aa7d60a094b021f635d4edb7807c055a4ea1
   cannot parse cert crash-df9d1243057b27bbad6211e5a23d1cb699028aa2
   cannot parse cert crash-df9d1243057b27bbad6211e5a23d1cb699028aa2
+  cannot parse cert crash-e0f8ecc694d96a09a1fced27b2a0838b670d34a0
+  cannot parse cert crash-e0f8ecc694d96a09a1fced27b2a0838b670d34a0
   cannot parse cert crash-e2fd5ecb3b37926743256f1083f47a07c39e10c2
   cannot parse cert crash-e2fd5ecb3b37926743256f1083f47a07c39e10c2
   cannot parse cert valid-blobmsg.bin
