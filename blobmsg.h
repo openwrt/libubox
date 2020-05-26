@@ -314,9 +314,6 @@ int blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, 
 int blobmsg_printf(struct blob_buf *buf, const char *name, const char *format, ...)
      __attribute__((format(printf, 3, 4)));
 
-
-/* blobmsg to json formatting */
-
 #define blobmsg_for_each_attr(pos, attr, rem) \
 	for (rem = attr ? blobmsg_data_len(attr) : 0, \
 	     pos = (struct blob_attr *) (attr ? blobmsg_data(attr) : NULL); \
