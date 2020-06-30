@@ -232,17 +232,14 @@ static int ul_ufd_add(lua_State *L)
 	int ref;
 	int fd_ref;
 
-	if (lua_isnumber(L, -1)) {
-		flags = lua_tointeger(L, -1);
-		lua_pop(L, 1);
-	}
-
-	if (!lua_isfunction(L, -1)) {
-		lua_pushstring(L, "invalid arg list");
+	flags = luaL_checkinteger(L, -1);
+	if (!flags) {
+		lua_pushstring(L, "flags cannot be zero");
 		lua_error(L);
-
-		return 0;
 	}
+	lua_pop(L, 1);
+
+	luaL_checktype(L, -1, LUA_TFUNCTION);
 
 	fd = get_sock_fd(L, -2);
 
@@ -261,8 +258,7 @@ static int ul_ufd_add(lua_State *L)
 	ufd->fd.fd = fd;
 	ufd->fd_r = fd_ref;
 	ufd->fd.cb = ul_ufd_cb;
-	if (flags)
-		uloop_fd_add(&ufd->fd, flags);
+	uloop_fd_add(&ufd->fd, flags);
 
 	return 1;
 }
