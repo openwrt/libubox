@@ -188,7 +188,8 @@ static int get_sock_fd(lua_State* L, int idx) {
 		lua_getfield(L, idx, "getfd");
 		if(lua_isnil(L, -1))
 			return luaL_error(L, "socket type missing 'getfd' method");
-		lua_pushvalue(L, idx - 1);
+		/* if we have absolute, no need to adjust for getfield() call */
+		lua_pushvalue(L, idx > 0 ? idx: idx - 1);
 		lua_call(L, 1, 1);
 		fd = lua_tointeger(L, -1);
 		lua_pop(L, 1);
