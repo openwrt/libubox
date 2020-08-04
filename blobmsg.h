@@ -35,6 +35,7 @@ enum blobmsg_type {
 	__BLOBMSG_TYPE_LAST,
 	BLOBMSG_TYPE_LAST = __BLOBMSG_TYPE_LAST - 1,
 	BLOBMSG_TYPE_BOOL = BLOBMSG_TYPE_INT8,
+	BLOBMSG_CAST_INT64,
 };
 
 struct blobmsg_hdr {
@@ -285,6 +286,38 @@ static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
 	uint32_t *ptr = (uint32_t *) blobmsg_data(attr);
 	uint64_t tmp = ((uint64_t) be32_to_cpu(ptr[0])) << 32;
 	tmp |= be32_to_cpu(ptr[1]);
+	return tmp;
+}
+
+static inline uint64_t blobmsg_cast_u64(struct blob_attr *attr)
+{
+	uint64_t tmp = 0;
+
+	if (blobmsg_type(attr) == BLOBMSG_TYPE_INT64)
+		tmp = blobmsg_get_u64(attr);
+	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT32)
+		tmp = blobmsg_get_u32(attr);
+	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT16)
+		tmp = blobmsg_get_u16(attr);
+	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT8)
+		tmp = blobmsg_get_u8(attr);
+
+	return tmp;
+}
+
+static inline int64_t blobmsg_cast_s64(struct blob_attr *attr)
+{
+	int64_t tmp = 0;
+
+	if (blobmsg_type(attr) == BLOBMSG_TYPE_INT64)
+		tmp = blobmsg_get_u64(attr);
+	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT32)
+		tmp = (int32_t)blobmsg_get_u32(attr);
+	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT16)
+		tmp = (int16_t)blobmsg_get_u16(attr);
+	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT8)
+		tmp = (int8_t)blobmsg_get_u8(attr);
+
 	return tmp;
 }
 

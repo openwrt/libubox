@@ -195,7 +195,15 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 				continue;
 
 			if (policy[i].type != BLOBMSG_TYPE_UNSPEC &&
+			    policy[i].type != BLOBMSG_CAST_INT64 &&
 			    blob_id(attr) != policy[i].type)
+				continue;
+
+			if (policy[i].type == BLOBMSG_CAST_INT64 &&
+			    (blob_id(attr) != BLOBMSG_TYPE_INT64 &&
+			     blob_id(attr) != BLOBMSG_TYPE_INT32 &&
+			     blob_id(attr) != BLOBMSG_TYPE_INT16 &&
+			     blob_id(attr) != BLOBMSG_TYPE_INT8))
 				continue;
 
 			if (blobmsg_namelen(hdr) != pslen[i])
