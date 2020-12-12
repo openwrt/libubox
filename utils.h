@@ -19,6 +19,7 @@
 #ifndef __LIBUBOX_UTILS_H
 #define __LIBUBOX_UTILS_H
 
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
 #include <stdint.h>
@@ -252,5 +253,6 @@ static inline unsigned long cbuf_size(int order)
 
 void *cbuf_alloc(unsigned int order);
 void cbuf_free(void *ptr, unsigned int order);
+int mkdir_p(char *dir, mode_t mask);
 
 #endif

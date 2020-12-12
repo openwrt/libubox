@@ -17,9 +17,11 @@
  */
 
 #include <sys/mman.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "utils.h"
 
 #define foreach_arg(_arg, _addr, _len, _first_addr, _first_len) \
@@ -154,4 +156,34 @@ close:
 void cbuf_free(void *ptr, unsigned int order)
 {
 	munmap(ptr, cbuf_size(order) * 2);
+}
+
+int mkdir_p(char *dir, mode_t mask)
+{
+	char *l;
+	int ret;
+
+	ret = mkdir(dir, mask);
+	if (!ret || (ret && errno == EEXIST))
+		return 0;
+
+	if (ret && (errno != ENOENT))
+		return -1;
+
+	l = strrchr(dir, '/');
+	if (!l || l == dir)
+		return -1;
+
+	*l = '\0';
+
+	if (mkdir_p(dir, mask))
+		return -1;
+
+	*l = '/';
+
+	ret = mkdir(dir, mask);
+	if (!ret || (ret && errno == EEXIST))
+		return 0;
+	else
+		return -1;
 }
