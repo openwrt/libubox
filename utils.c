@@ -164,7 +164,7 @@ int mkdir_p(char *dir, mode_t mask)
 	int ret;
 
 	ret = mkdir(dir, mask);
-	if (!ret || (ret && errno == EEXIST))
+	if (!ret || errno == EEXIST)
 		return 0;
 
 	if (ret && (errno != ENOENT))
@@ -182,7 +182,7 @@ int mkdir_p(char *dir, mode_t mask)
 	*l = '/';
 
 	ret = mkdir(dir, mask);
-	if (!ret || (ret && errno == EEXIST))
+	if (!ret || errno == EEXIST)
 		return 0;
 	else
 		return -1;
