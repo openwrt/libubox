@@ -48,10 +48,10 @@ check that b64_encode and b64_decode assert invalid input
   Aborted (core dumped)
   b64_encode: Assertion `dest && targsize > 0' failed.
 
-  $ test-b64_decode-san 2> output.log; check
+  $ test-b64_decode-san > output.log 2>&1; check
   Aborted (core dumped)
   b64_decode: Assertion `dest && targsize > 0' failed.
 
-  $ test-b64_encode-san 2> output.log; check
+  $ test-b64_encode-san > output.log 2>&1; check
   Aborted (core dumped)
   b64_encode: Assertion `dest && targsize > 0' failed.
