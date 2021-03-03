@@ -38,20 +38,16 @@ check that base64 is producing expected results:
 
 check that b64_encode and b64_decode assert invalid input
 
-  $ alias check="egrep '(dumped|Assertion)' output.log | sed 's;.*\(b64_.*code\).*\(Assertion.*$\);\1: \2;' | LC_ALL=C sort"
+  $ alias check="grep Assertion output.log | sed 's;.*\(b64_.*code\).*\(Assertion.*$\);\1: \2;' | LC_ALL=C sort"
 
-  $ test-b64_decode 2> output.log; check
-  Aborted (core dumped)
+  $ test-b64_decode > output.log 2>&1; check
   b64_decode: Assertion `dest && targsize > 0' failed.
 
-  $ test-b64_encode 2> output.log; check
-  Aborted (core dumped)
+  $ test-b64_encode > output.log 2>&1; check
   b64_encode: Assertion `dest && targsize > 0' failed.
 
   $ test-b64_decode-san > output.log 2>&1; check
-  Aborted (core dumped)
   b64_decode: Assertion `dest && targsize > 0' failed.
 
   $ test-b64_encode-san > output.log 2>&1; check
-  Aborted (core dumped)
   b64_encode: Assertion `dest && targsize > 0' failed.
