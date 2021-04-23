@@ -58,6 +58,8 @@ blob_buf_grow(struct blob_buf *buf, int required)
 {
 	int offset_head = attr_to_offset(buf, buf->head);
 
+	if ((buf->buflen + required) > BLOB_ATTR_LEN_MASK)
+		return false;
 	if (!buf->grow || !buf->grow(buf, required))
 		return false;
 
