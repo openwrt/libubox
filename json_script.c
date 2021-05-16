@@ -591,7 +591,7 @@ static int json_process_cmd(struct json_call *call, struct blob_attr *block)
 		case BLOBMSG_TYPE_STRING:
 			if (!i)
 				return __json_process_cmd(call, block);
-			/* fall through */
+			fallthrough;
 		default:
 			ret = json_process_cmd(call, cur);
 			if (ret < -1)
