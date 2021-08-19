@@ -112,6 +112,8 @@ list_del_init(struct list_head *entry)
 #define	list_entry(ptr, type, field)	container_of(ptr, type, field)
 #define	list_first_entry(ptr, type, field)	list_entry((ptr)->next, type, field)
 #define	list_last_entry(ptr, type, field)	list_entry((ptr)->prev, type, field)
+#define	list_next_entry(pos, member)		list_entry((pos)->member.next, typeof(*(pos)), member)
+#define	list_entry_is_h(p, h, field)		(&p->field == (h))
 
 #define	list_for_each(p, head)						\
 	for (p = (head)->next; p != (head); p = p->next)
@@ -122,6 +124,16 @@ list_del_init(struct list_head *entry)
 #define list_for_each_entry(p, h, field)				\
 	for (p = list_first_entry(h, __typeof__(*p), field); &p->field != (h); \
 	    p = list_entry(p->field.next, __typeof__(*p), field))
+
+#define list_for_each_entry_continue(p, h, field)			\
+	for (p = list_next_entry(p, field);				\
+	     !list_entry_is_h(p, h, field);				\
+	     p = list_next_entry(p, field))
+
+#define list_for_each_entry_continue_reverse(p, h, field)		\
+	for (p = list_prev_entry(p, field);				\
+	     !list_entry_is_h(p, h, field);				\
+	     p = list_prev_entry(p, field))
 
 #define list_for_each_entry_safe(p, n, h, field)			\
 	for (p = list_first_entry(h, __typeof__(*p), field),		\
