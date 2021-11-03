@@ -249,7 +249,7 @@ int uloop_fd_delete(struct uloop_fd *fd)
 	return __uloop_fd_delete(fd);
 }
 
-static int tv_diff(struct timeval *t1, struct timeval *t2)
+static int64_t tv_diff(struct timeval *t1, struct timeval *t2)
 {
 	return
 		(t1->tv_sec - t2->tv_sec) * 1000 +
@@ -317,7 +317,7 @@ int uloop_timeout_cancel(struct uloop_timeout *timeout)
 	return 0;
 }
 
-int uloop_timeout_remaining(struct uloop_timeout *timeout)
+int64_t uloop_timeout_remaining(struct uloop_timeout *timeout)
 {
 	struct timeval now;
 
@@ -477,7 +477,7 @@ static void uloop_setup_signals(bool add)
 static int uloop_get_next_timeout(struct timeval *tv)
 {
 	struct uloop_timeout *timeout;
-	int diff;
+	int64_t diff;
 
 	if (list_empty(&timeouts))
 		return -1;
