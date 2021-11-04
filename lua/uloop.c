@@ -99,7 +99,7 @@ static int ul_timer_remaining(lua_State *L)
 	struct lua_uloop_timeout *tout;
 
 	tout = lua_touserdata(L, 1);
-	lua_pushnumber(L, uloop_timeout_remaining(&tout->t));
+	lua_pushnumber(L, uloop_timeout_remaining64(&tout->t));
 	return 1;
 }
 
