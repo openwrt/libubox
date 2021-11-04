@@ -93,6 +93,7 @@ int uloop_timeout_add(struct uloop_timeout *timeout);
 int uloop_timeout_set(struct uloop_timeout *timeout, int msecs);
 int uloop_timeout_cancel(struct uloop_timeout *timeout);
 int uloop_timeout_remaining(struct uloop_timeout *timeout);
+int64_t uloop_timeout_remaining64(struct uloop_timeout *timeout);
 
 int uloop_process_add(struct uloop_process *p);
 int uloop_process_delete(struct uloop_process *p);

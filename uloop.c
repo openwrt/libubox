@@ -338,6 +338,18 @@ int uloop_timeout_remaining(struct uloop_timeout *timeout)
 		return (int)td;
 }
 
+int64_t uloop_timeout_remaining64(struct uloop_timeout *timeout)
+{
+	struct timeval now;
+
+	if (!timeout->pending)
+		return -1;
+
+	uloop_gettime(&now);
+
+	return tv_diff(&timeout->time, &now);
+}
+
 int uloop_process_add(struct uloop_process *p)
 {
 	struct uloop_process *tmp;
