@@ -26,6 +26,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #include "uloop.h"
 #include "utils.h"
@@ -317,8 +318,9 @@ int uloop_timeout_cancel(struct uloop_timeout *timeout)
 	return 0;
 }
 
-int64_t uloop_timeout_remaining(struct uloop_timeout *timeout)
+int uloop_timeout_remaining(struct uloop_timeout *timeout)
 {
+	int64_t td;
 	struct timeval now;
 
 	if (!timeout->pending)
@@ -326,7 +328,14 @@ int64_t uloop_timeout_remaining(struct uloop_timeout *timeout)
 
 	uloop_gettime(&now);
 
-	return tv_diff(&timeout->time, &now);
+	td = tv_diff(&timeout->time, &now);
+
+	if (td > INT_MAX)
+		return INT_MAX;
+	else if (td < INT_MIN)
+		return INT_MIN;
+	else
+		return (int)td;
 }
 
 int uloop_process_add(struct uloop_process *p)
