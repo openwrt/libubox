@@ -105,6 +105,7 @@ blob_buf_free(struct blob_buf *buf)
 {
 	free(buf->buf);
 	buf->buf = NULL;
+	buf->head = NULL;
 	buf->buflen = 0;
 }
 
