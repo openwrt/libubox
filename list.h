@@ -42,6 +42,14 @@
 	})
 #endif
 
+#ifndef container_of_safe
+#define container_of_safe(ptr, type, member)						\
+	({										\
+		const __typeof__(((type *) NULL)->member) *__mptr = (ptr);		\
+		__mptr ? (type *)((char *) __mptr - offsetof(type, member)) : NULL;	\
+	})
+#endif
+
 struct list_head {
 	struct list_head *next;
 	struct list_head *prev;
