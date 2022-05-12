@@ -296,7 +296,7 @@ int blobmsg_vprintf(struct blob_buf *buf, const char *name, const char *format, 
 	if (len < 0)
 		return -1;
 
-	sbuf = blobmsg_alloc_string_buffer(buf, name, len + 1);
+	sbuf = blobmsg_alloc_string_buffer(buf, name, len);
 	if (!sbuf)
 		return -1;
 
@@ -328,6 +328,7 @@ blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, unsigned int
 	struct blob_attr *attr;
 	void *data_dest;
 
+	maxlen++;
 	attr = blobmsg_new(buf, BLOBMSG_TYPE_STRING, name, maxlen, &data_dest);
 	if (!attr)
 		return NULL;
@@ -343,7 +344,7 @@ blobmsg_realloc_string_buffer(struct blob_buf *buf, unsigned int maxlen)
 {
 	struct blob_attr *attr = blob_next(buf->head);
 	int offset = attr_to_offset(buf, blob_next(buf->head)) + blob_pad_len(attr) - BLOB_COOKIE;
-	int required = maxlen - (buf->buflen - offset);
+	int required = maxlen + 1 - (buf->buflen - offset);
 
 	if (required <= 0)
 		goto out;
