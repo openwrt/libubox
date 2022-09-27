@@ -174,6 +174,29 @@ json_add_null() {
 	_json_add_generic null "$1" "" "$cur"
 }
 
+json_add_fields() {
+	while [ "$#" -gt 0 ]; do
+		local field="$1"
+		shift
+
+		local name="${field%%=*}"
+		local val="${field#*=}"
+		[ "$name" != "$val" ] || val=""
+
+		local type="${name#*:}"
+		[ "$type" != "$name" ] || type=string
+		name="${name%%:*}"
+
+		case "$type" in
+			string|int|boolean|double)
+				local cur
+				_json_get_var cur JSON_CUR
+				_json_add_generic "$type" "$name" "$val" "$cur"
+			;;
+		esac
+	done
+}
+
 # functions read access to json variables
 
 json_load() {
