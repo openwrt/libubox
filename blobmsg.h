@@ -179,6 +179,13 @@ int blobmsg_add_field(struct blob_buf *buf, int type, const char *name,
                       const void *data, unsigned int len);
 
 static inline int
+blobmsg_parse_attr(const struct blobmsg_policy *policy, int policy_len,
+		   struct blob_attr **tb, struct blob_attr *data)
+{
+    return blobmsg_parse(policy, policy_len, tb, blobmsg_data(data), blobmsg_len(data));
+}
+
+static inline int
 blobmsg_add_double(struct blob_buf *buf, const char *name, double val)
 {
 	union {
