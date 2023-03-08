@@ -4,7 +4,7 @@ MACRO(ADD_FUZZER_TEST name)
   ADD_EXECUTABLE(${name} ${name}.c)
   TARGET_COMPILE_OPTIONS(${name} PRIVATE -g -O1 -fno-omit-frame-pointer -fsanitize=fuzzer,address,leak,undefined)
   TARGET_INCLUDE_DIRECTORIES(${name} PRIVATE ${PROJECT_SOURCE_DIR})
-  TARGET_LINK_OPTIONS(${name} PRIVATE -stdlib=libc++ -fsanitize=fuzzer,address,leak,undefined)
+  TARGET_LINK_OPTIONS(${name} PRIVATE -fsanitize=fuzzer,address,leak,undefined)
   TARGET_LINK_LIBRARIES(${name} ubox blobmsg_json json_script ${json})
   ADD_TEST(
     NAME ${name}
