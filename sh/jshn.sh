@@ -199,6 +199,16 @@ json_add_fields() {
 
 # functions read access to json variables
 
+json_compact() {
+	JSON_NONEWLINE=1
+	JSON_INDENT=
+}
+
+json_pretty() {
+	JSON_NONEWLINE=
+	JSON_INDENT=1
+}
+
 json_load() {
 	eval "`jshn -r "$1"`"
 }
@@ -208,7 +218,7 @@ json_load_file() {
 }
 
 json_dump() {
-	jshn "$@" ${JSON_PREFIX:+-p "$JSON_PREFIX"} -w 
+	jshn "$@" ${JSON_PREFIX:+-p "$JSON_PREFIX"} ${JSON_NONEWLINE:+-n} ${JSON_INDENT:+-i} -w
 }
 
 json_get_type() {
