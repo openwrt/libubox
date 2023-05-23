@@ -85,10 +85,12 @@ struct uloop_process
 
 extern bool uloop_cancelled;
 extern bool uloop_handle_sigchld;
+extern uloop_fd_handler uloop_fd_set_cb;
 
 int uloop_fd_add(struct uloop_fd *sock, unsigned int flags);
 int uloop_fd_delete(struct uloop_fd *sock);
 
+int uloop_get_next_timeout(void);
 int uloop_timeout_add(struct uloop_timeout *timeout);
 int uloop_timeout_set(struct uloop_timeout *timeout, int msecs);
 int uloop_timeout_cancel(struct uloop_timeout *timeout);

@@ -67,6 +67,8 @@ static struct uloop_fd_event cur_fds[ULOOP_MAX_EVENTS];
 static int cur_fd, cur_nfds;
 static int uloop_run_depth = 0;
 
+uloop_fd_handler uloop_fd_set_cb = NULL;
+
 int uloop_fd_add(struct uloop_fd *sock, unsigned int flags);
 
 #ifdef USE_KQUEUE
@@ -161,7 +163,7 @@ static bool uloop_fd_stack_event(struct uloop_fd *fd, int events)
 	return false;
 }
 
-static void uloop_run_events(int timeout)
+static void uloop_run_events(int64_t timeout)
 {
 	struct uloop_fd_event *cur;
 	struct uloop_fd *fd;
@@ -223,6 +225,10 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 	if (ret < 0)
 		goto out;
 
+	if (uloop_fd_set_cb)
+		uloop_fd_set_cb(sock, flags);
+
+	sock->flags = flags;
 	sock->registered = true;
 	sock->eof = false;
 	sock->error = false;
@@ -245,7 +251,11 @@ int uloop_fd_delete(struct uloop_fd *fd)
 	if (!fd->registered)
 		return 0;
 
+	if (uloop_fd_set_cb)
+		uloop_fd_set_cb(fd, 0);
+
 	fd->registered = false;
+	fd->flags = 0;
 	uloop_fd_stack_event(fd, -1);
 	return __uloop_fd_delete(fd);
 }
@@ -495,30 +505,40 @@ static void uloop_setup_signals(bool add)
 	uloop_ignore_signal(SIGPIPE, add);
 }
 
-static int uloop_get_next_timeout(struct timeval *tv)
+int uloop_get_next_timeout(void)
 {
 	struct uloop_timeout *timeout;
+	struct timeval tv;
 	int64_t diff;
 
 	if (list_empty(&timeouts))
 		return -1;
 
+	uloop_gettime(&tv);
+
 	timeout = list_first_entry(&timeouts, struct uloop_timeout, list);
-	diff = tv_diff(&timeout->time, tv);
+	diff = tv_diff(&timeout->time, &tv);
 	if (diff < 0)
 		return 0;
+	if (diff > INT_MAX)
+		return INT_MAX;
 
 	return diff;
 }
 
-static void uloop_process_timeouts(struct timeval *tv)
+static void uloop_process_timeouts(void)
 {
 	struct uloop_timeout *t;
+	struct timeval tv;
 
+	if (list_empty(&timeouts))
+		return;
+
+	uloop_gettime(&tv);
 	while (!list_empty(&timeouts)) {
 		t = list_first_entry(&timeouts, struct uloop_timeout, list);
 
-		if (tv_diff(&t->time, tv) > 0)
+		if (tv_diff(&t->time, &tv) > 0)
 			break;
 
 		uloop_timeout_cancel(t);
@@ -551,15 +571,13 @@ bool uloop_cancelling(void)
 int uloop_run_timeout(int timeout)
 {
 	int next_time = 0;
-	struct timeval tv;
 
 	uloop_run_depth++;
 
 	uloop_status = 0;
 	uloop_cancelled = false;
 	do {
-		uloop_gettime(&tv);
-		uloop_process_timeouts(&tv);
+		uloop_process_timeouts();
 
 		if (do_sigchld)
 			uloop_handle_processes();
@@ -567,9 +585,7 @@ int uloop_run_timeout(int timeout)
 		if (uloop_cancelled)
 			break;
 
-		uloop_gettime(&tv);
-
-		next_time = uloop_get_next_timeout(&tv);
+		next_time = uloop_get_next_timeout();
 		if (timeout >= 0 && (next_time < 0 || timeout < next_time))
 				next_time = timeout;
 		uloop_run_events(next_time);

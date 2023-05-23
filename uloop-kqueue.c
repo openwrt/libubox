@@ -66,6 +66,9 @@ static int register_kevent(struct uloop_fd *fd, unsigned int flags)
 	if (changed & ULOOP_EDGE_TRIGGER)
 		changed |= flags;
 
+	if (!changed)
+		return 0;
+
 	if (changed & ULOOP_READ) {
 		kflags = get_flags(flags, ULOOP_READ);
 		EV_SET(&ev[nev++], fd->fd, EVFILT_READ, kflags, 0, 0, fd);
@@ -79,7 +82,6 @@ static int register_kevent(struct uloop_fd *fd, unsigned int flags)
 	if (!flags)
 		fl |= EV_DELETE;
 
-	fd->flags = flags;
 	if (kevent(poll_fd, ev, nev, NULL, fl, &timeout) == -1)
 		return -1;
 

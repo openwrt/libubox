@@ -53,7 +53,6 @@ static int register_poll(struct uloop_fd *fd, unsigned int flags)
 		ev.events |= EPOLLET;
 
 	ev.data.ptr = fd;
-	fd->flags = flags;
 
 	return epoll_ctl(poll_fd, op, fd->fd, &ev);
 }
