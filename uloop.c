@@ -557,8 +557,7 @@ int uloop_run_timeout(int timeout)
 
 	uloop_status = 0;
 	uloop_cancelled = false;
-	while (!uloop_cancelled)
-	{
+	do {
 		uloop_gettime(&tv);
 		uloop_process_timeouts(&tv);
 
@@ -571,10 +570,10 @@ int uloop_run_timeout(int timeout)
 		uloop_gettime(&tv);
 
 		next_time = uloop_get_next_timeout(&tv);
-		if (timeout >= 0 && timeout < next_time)
-			next_time = timeout;
+		if (timeout >= 0 && (next_time < 0 || timeout < next_time))
+				next_time = timeout;
 		uloop_run_events(next_time);
-	}
+	} while (!uloop_cancelled && timeout < 0);
 
 	--uloop_run_depth;
 
