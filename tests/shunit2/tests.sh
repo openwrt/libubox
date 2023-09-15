@@ -452,6 +452,31 @@ test_jshn_add_multi() {
 	set -u
 }
 
+test_jshn_push_stuff() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	# Test an array with anonymous strings, ints, booleans, doubles, and null in it
+	json_init
+	json_add_array "arr"
+
+	# first element uses the legacy method with no name
+	json_add_string "" "first"
+
+	# the rest use the new functions
+	json_push_string "second"
+	json_push_int 42
+	json_push_boolean true
+	json_push_double 3.141592
+	json_push_null
+
+	assertEquals '{ "arr": [ "first", "second", 42, false, 3.1415920000000002, null ] }' "$(json_dump)"
+
+	set -u
+}
+
 test_jshn_append_via_json_script() {
 	JSON_PREFIX="${JSON_PREFIX:-}"
 	. ../../sh/jshn.sh
