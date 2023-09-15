@@ -150,6 +150,17 @@ json_add_string() {
 	_json_add_generic string "$1" "$2" "$cur"
 }
 
+json_push_string() {
+	local cur
+	_json_get_var cur JSON_CUR
+	[ "${cur%%[0-9]*}" = "J_A" ] || {
+		[ -n "$_json_no_warning" ] || \
+			echo "WARNING: Not in an array" >&2
+		return 1
+	}
+	_json_add_generic string "" "$2" "$cur"
+}
+
 json_add_int() {
 	local cur
 	_json_get_var cur JSON_CUR
