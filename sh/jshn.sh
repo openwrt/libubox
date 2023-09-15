@@ -197,6 +197,42 @@ json_add_fields() {
 	done
 }
 
+json_get_position() {
+	local __dest="$1"
+	eval "export -- \"$__dest=\${JSON_CUR}\"; [ -n \"\${JSON_CUR+x}\" ]"
+}
+
+json_move_to() {
+	local cur="$1"
+	_json_set_var JSON_CUR "$cur"
+}
+
+json_get_parent_position() {
+	local __dest="$1" cur parent
+	_json_get_var cur JSON_CUR
+	parent="U_$cur"
+	eval "export -- \"$__dest=\${$parent}\"; [ -n \"\${$parent+x}\" ]"
+}
+
+json_get_root_position() {
+	local __dest="$1" cur="J_V"
+	eval "export -- \"$__dest=\${cur}\"; [ -n \"\${cur+x}\" ]"
+}
+
+json_get_index() {
+	local __dest="$1"
+	local cur parent seq
+	_json_get_var cur JSON_CUR
+	_json_get_var parent "U_$cur"
+	if [ "${parent%%[0-9]*}" != "J_A" ]; then
+		[ -n "$_json_no_warning" ] || \
+			echo "WARNING: Not inside an array" >&2
+		return 1
+	fi
+	seq="S_$parent"
+	eval "export -- \"$__dest=\${$seq}\"; [ -n \"\${$seq+x}\" ]"
+}
+
 # functions read access to json variables
 
 json_compact() {
