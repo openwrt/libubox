@@ -208,6 +208,25 @@ json_add_fields() {
 	done
 }
 
+json_get_position() {
+	local __dest="$1" cur
+	_json_get_var cur JSON_CUR
+	export -- "$__dest=${cur}"; [ -n "${cur+x}" ]
+}
+
+json_set_position() {
+	local cur="$1"
+	_json_set_var JSON_CUR "$cur"
+}
+
+json_get_parent_position() {
+	local __dest="$1" cur
+	_json_get_var cur JSON_CUR
+	_json_get_var cur "U_$cur"
+	export -- "$__dest=${cur}"; [ -n "${cur+x}" ]
+}
+
+
 # functions read access to json variables
 
 json_compact() {
