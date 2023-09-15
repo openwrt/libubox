@@ -211,6 +211,28 @@ json_get_index() {
 	eval "export -- \"$__dest=\${$__seq}\"; [ -n \"\${$__seq+x}\" ]"
 }
 
+json_get_position() {
+	local __dest="$1"
+	eval "export -- \"$__dest=\${JSON_CUR}\"; [ -n \"\${JSON_CUR+x}\" ]"
+}
+
+json_move_to() {
+	local __cur="$1"
+	_json_set_var JSON_CUR "$cur"
+}
+
+json_get_parent_position() {
+	local __dest="$1" __cur __parent
+	_json_get_var __cur JSON_CUR
+	__parent="U_$__cur"
+	eval "export -- \"$__dest=\${$__parent}\"; [ -n \"\${$__parent+x}\" ]"
+}
+
+json_get_root_position() {
+	local __dest="$1" __cur="J_V"
+	eval "export -- \"$__dest=\${__cur}\"; [ -n \"\${__cur+x}\" ]"
+}
+
 # functions read access to json variables
 
 json_compact() {
