@@ -309,7 +309,7 @@ json_select() {
 		;;
 		*)
 			[ -n "$_json_no_warning" ] || \
-				echo "WARNING: Variable '$target' does not exist or is not an array/object"
+				echo "WARNING: Variable '$target' does not exist or is not an array/object" >&2
 			return 1
 		;;
 	esac
