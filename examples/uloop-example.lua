@@ -24,6 +24,23 @@ uloop.timer(function() print("2000 ms timer run"); end, 2000)
 -- timer example 3 (will never run)
 uloop.timer(function() print("3000 ms timer run"); end, 3000):cancel()
 
+-- periodic interval timer
+local intv
+intv = uloop.interval(function()
+	print(string.format("Interval expiration #%d - %dms until next expiration",
+		intv:expirations(), intv:remaining()))
+
+	-- after 5 expirations, lower interval to 500ms
+	if intv:expirations() >= 5 then
+		intv:set(500)
+	end
+
+	-- cancel after 10 expirations
+	if intv:expirations() >= 10 then
+		intv:cancel()
+	end
+end, 1000)
+
 -- process
 function p1(r)
 	print("Process 1 completed")

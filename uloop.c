@@ -36,6 +36,7 @@
 #endif
 #ifdef USE_EPOLL
 #include <sys/epoll.h>
+#include <sys/timerfd.h>
 #endif
 #include <sys/wait.h>
 
@@ -420,6 +421,21 @@ static void uloop_handle_processes(void)
 		}
 	}
 
+}
+
+int uloop_interval_set(struct uloop_interval *timer, unsigned int msecs)
+{
+	return timer_register(timer, msecs);
+}
+
+int uloop_interval_cancel(struct uloop_interval *timer)
+{
+	return timer_remove(timer);
+}
+
+int64_t uloop_interval_remaining(struct uloop_interval *timer)
+{
+	return timer_next(timer);
 }
 
 static void uloop_signal_wake(void)
