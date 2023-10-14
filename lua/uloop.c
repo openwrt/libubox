@@ -41,6 +41,11 @@ struct lua_uloop_process {
 	int r;
 };
 
+struct lua_uloop_interval {
+	struct uloop_interval i;
+	int r;
+};
+
 static lua_State *state;
 
 static void *
@@ -382,6 +387,112 @@ static int ul_process(lua_State *L)
 	return 1;
 }
 
+static void ul_interval_cb(struct uloop_interval *i)
+{
+	struct lua_uloop_interval *intv = container_of(i, struct lua_uloop_interval, i);
+
+	lua_getglobal(state, "__uloop_cb");
+	lua_rawgeti(state, -1, intv->r);
+	lua_remove(state, -2);
+
+	lua_call(state, 0, 0);
+}
+
+static int ul_interval_set(lua_State *L)
+{
+	struct lua_uloop_interval *intv;
+	double set;
+
+	if (!lua_isnumber(L, -1)) {
+		lua_pushstring(L, "invalid arg list");
+		lua_error(L);
+
+		return 0;
+	}
+
+	set = lua_tointeger(L, -1);
+	intv = lua_touserdata(L, 1);
+	uloop_interval_set(&intv->i, set);
+
+	return 1;
+}
+
+static int ul_interval_expirations(lua_State *L)
+{
+	struct lua_uloop_interval *intv;
+
+	intv = lua_touserdata(L, 1);
+	lua_pushinteger(L, intv->i.expirations);
+	return 1;
+}
+
+static int ul_interval_remaining(lua_State *L)
+{
+	struct lua_uloop_interval *intv;
+
+	intv = lua_touserdata(L, 1);
+	lua_pushnumber(L, uloop_interval_remaining(&intv->i));
+	return 1;
+}
+
+static int ul_interval_free(lua_State *L)
+{
+	struct lua_uloop_interval *intv = lua_touserdata(L, 1);
+
+	uloop_interval_cancel(&intv->i);
+
+	/* obj.__index.__gc = nil , make sure executing only once*/
+	lua_getfield(L, -1, "__index");
+	lua_pushstring(L, "__gc");
+	lua_pushnil(L);
+	lua_settable(L, -3);
+
+	lua_getglobal(state, "__uloop_cb");
+	luaL_unref(state, -1, intv->r);
+
+	return 1;
+}
+
+static const luaL_Reg interval_m[] = {
+	{ "set", ul_interval_set },
+	{ "expirations", ul_interval_expirations },
+	{ "remaining", ul_interval_remaining },
+	{ "cancel", ul_interval_free },
+	{ NULL, NULL }
+};
+
+static int ul_interval(lua_State *L)
+{
+	struct lua_uloop_interval *intv;
+	unsigned int set = 0;
+	int ref;
+
+	if (lua_isnumber(L, -1)) {
+		set = lua_tointeger(L, -1);
+		lua_pop(L, 1);
+	}
+
+	if (!lua_isfunction(L, -1)) {
+		lua_pushstring(L, "invalid arg list");
+		lua_error(L);
+
+		return 0;
+	}
+
+	lua_getglobal(L, "__uloop_cb");
+	lua_pushvalue(L, -2);
+	ref = luaL_ref(L, -2);
+
+	intv = ul_create_userdata(L, sizeof(*intv), interval_m, ul_interval_free);
+	intv->r = ref;
+	intv->i.cb = ul_interval_cb;
+
+	if (set)
+		uloop_interval_set(&intv->i, set);
+
+	return 1;
+}
+
 static int ul_init(lua_State *L)
 {
 	uloop_init();
@@ -410,6 +521,7 @@ static luaL_reg uloop_func[] = {
 	{"timer", ul_timer},
 	{"process", ul_process},
 	{"fd_add", ul_ufd_add},
+	{"interval", ul_interval},
 	{"cancel", ul_end},
 	{NULL, NULL},
 };
