@@ -63,6 +63,22 @@ uloop.timer(
 	end, 2000
 )
 
+-- SIGINT handler
+uloop.signal(function(signo)
+	print(string.format("Terminating on SIGINT (#%d)!", signo))
+
+	-- end uloop to terminate program
+	uloop.cancel()
+end, uloop.SIGINT)
+
+local sig
+sig = uloop.signal(function(signo)
+	print(string.format("Got SIGUSR2 (#%d)!", signo))
+
+	-- remove signal handler, next SIGUSR2 will terminate program
+	sig:delete()
+end, uloop.SIGUSR2)
+
 -- Keep udp_ev reference, events will be gc'd, even if the callback is still referenced
 -- .delete will manually untrack.
 udp_ev = uloop.fd_add(udp, function(ufd, events)
