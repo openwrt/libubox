@@ -36,11 +36,13 @@ struct uloop_fd;
 struct uloop_timeout;
 struct uloop_process;
 struct uloop_interval;
+struct uloop_signal;
 
 typedef void (*uloop_fd_handler)(struct uloop_fd *u, unsigned int events);
 typedef void (*uloop_timeout_handler)(struct uloop_timeout *t);
 typedef void (*uloop_process_handler)(struct uloop_process *c, int ret);
 typedef void (*uloop_interval_handler)(struct uloop_interval *t);
+typedef void (*uloop_signal_handler)(struct uloop_signal *s);
 
 #define ULOOP_READ		(1 << 0)
 #define ULOOP_WRITE		(1 << 1)
@@ -99,6 +101,16 @@ struct uloop_interval
 	} private;
 };
 
+struct uloop_signal
+{
+	struct list_head list;
+	struct sigaction orig;
+	bool pending;
+
+	uloop_signal_handler cb;
+	int signo;
+};
+
 extern bool uloop_cancelled;
 extern bool uloop_handle_sigchld;
 extern uloop_fd_handler uloop_fd_set_cb;
@@ -119,6 +131,9 @@ int uloop_process_delete(struct uloop_process *p);
 int uloop_interval_set(struct uloop_interval *timer, unsigned int msecs);
 int uloop_interval_cancel(struct uloop_interval *timer);
 int64_t uloop_interval_remaining(struct uloop_interval *timer);
+
+int uloop_signal_add(struct uloop_signal *s);
+int uloop_signal_delete(struct uloop_signal *s);
 
 bool uloop_cancelling(void);
 
