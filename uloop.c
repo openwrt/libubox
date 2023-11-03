@@ -568,6 +568,7 @@ int uloop_signal_add(struct uloop_signal *s)
 	if (s->orig.sa_handler != uloop_signal_wake) {
 		sa.sa_handler = uloop_signal_wake;
 		sa.sa_flags = 0;
+		sigemptyset(&sa.sa_mask);
 		sigaction(s->signo, &sa, NULL);
 	}
 
