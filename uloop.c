@@ -466,7 +466,7 @@ static void uloop_signal_wake(int signo)
 {
 	uint8_t sigbyte = signo;
 
-	if (signo == ECHILD)
+	if (signo == SIGCHLD)
 		do_sigchld = true;
 
 	do {
