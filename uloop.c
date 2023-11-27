@@ -264,6 +264,7 @@ out:
 
 int uloop_fd_delete(struct uloop_fd *fd)
 {
+	int ret;
 	int i;
 
 	for (i = 0; i < cur_nfds; i++) {
@@ -280,9 +281,11 @@ int uloop_fd_delete(struct uloop_fd *fd)
 		uloop_fd_set_cb(fd, 0);
 
 	fd->registered = false;
-	fd->flags = 0;
 	uloop_fd_stack_event(fd, -1);
-	return __uloop_fd_delete(fd);
+	ret = __uloop_fd_delete(fd);
+	fd->flags = 0;
+
+	return ret;
 }
 
 static int64_t tv_diff(struct timeval *t1, struct timeval *t2)
