@@ -21,6 +21,8 @@
 
 #include <syslog.h>
 
+#include "udebug.h"
+
 enum {
 	ULOG_KMSG   = (1 << 0),
 	ULOG_SYSLOG = (1 << 1),
@@ -28,6 +30,7 @@ enum {
 };
 
 void ulog_open(int channels, int facility, const char *ident);
+void ulog_udebug(struct udebug_buf *udb);
 void ulog_close(void);
 
 void ulog_threshold(int threshold);

@@ -29,6 +29,7 @@ static int _ulog_facility = -1;
 static int _ulog_threshold = LOG_DEBUG;
 static int _ulog_initialized = 0;
 static const char *_ulog_ident = NULL;
+static struct udebug_buf *udb = NULL;
 
 static const char *ulog_default_ident(void)
 {
@@ -120,6 +121,11 @@ static void ulog_syslog(int priority, const char *fmt, va_list ap)
 	vsyslog(priority, fmt, ap);
 }
 
+void ulog_udebug(struct udebug_buf *_udb)
+{
+	udb = _udb;
+}
+
 void ulog_open(int channels, int facility, const char *ident)
 {
 	ulog_close();
@@ -148,6 +154,14 @@ void ulog_threshold(int threshold)
 void ulog(int priority, const char *fmt, ...)
 {
 	va_list ap;
+
+	if (udb) {
+		va_start(ap, fmt);
+		udebug_entry_init(udb);
+		udebug_entry_vprintf(udb, fmt, ap);
+		udebug_entry_add(udb);
+		va_end(ap);
+	}
 
 	if (priority > _ulog_threshold)
 		return;
