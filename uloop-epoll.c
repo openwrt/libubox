@@ -115,7 +115,7 @@ static void dispatch_timer(struct uloop_fd *u, unsigned int events)
 	if (read(u->fd, &fired, sizeof(fired)) != sizeof(fired))
 		return;
 
-	struct uloop_interval *tm = container_of(u, struct uloop_interval, private.ufd);
+	struct uloop_interval *tm = container_of(u, struct uloop_interval, priv.ufd);
 
 	tm->expirations += fired;
 	tm->cb(tm);
@@ -123,14 +123,14 @@ static void dispatch_timer(struct uloop_fd *u, unsigned int events)
 
 static int timer_register(struct uloop_interval *tm, unsigned int msecs)
 {
-	if (!tm->private.ufd.registered) {
+	if (!tm->priv.ufd.registered) {
 		int fd = timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC|TFD_NONBLOCK);
 
 		if (fd == -1)
 			return -1;
 
-		tm->private.ufd.fd = fd;
-		tm->private.ufd.cb = dispatch_timer;
+		tm->priv.ufd.fd = fd;
+		tm->priv.ufd.cb = dispatch_timer;
 	}
 
 	struct itimerspec spec = {
@@ -144,29 +144,29 @@ static int timer_register(struct uloop_interval *tm, unsigned int msecs)
 		}
 	};
 
-	if (timerfd_settime(tm->private.ufd.fd, 0, &spec, NULL) == -1)
+	if (timerfd_settime(tm->priv.ufd.fd, 0, &spec, NULL) == -1)
 		goto err;
 
-	if (uloop_fd_add(&tm->private.ufd, ULOOP_READ) == -1)
+	if (uloop_fd_add(&tm->priv.ufd, ULOOP_READ) == -1)
 		goto err;
 
 	return 0;
 
 err:
-	uloop_fd_delete(&tm->private.ufd);
-	close(tm->private.ufd.fd);
-	memset(&tm->private.ufd, 0, sizeof(tm->private.ufd));
+	uloop_fd_delete(&tm->priv.ufd);
+	close(tm->priv.ufd.fd);
+	memset(&tm->priv.ufd, 0, sizeof(tm->priv.ufd));
 
 	return -1;
 }
 
 static int timer_remove(struct uloop_interval *tm)
 {
-	int ret = __uloop_fd_delete(&tm->private.ufd);
+	int ret = __uloop_fd_delete(&tm->priv.ufd);
 
 	if (ret == 0) {
-		close(tm->private.ufd.fd);
-		memset(&tm->private.ufd, 0, sizeof(tm->private.ufd));
+		close(tm->priv.ufd.fd);
+		memset(&tm->priv.ufd, 0, sizeof(tm->priv.ufd));
 	}
 
 	return ret;
@@ -176,10 +176,10 @@ static int64_t timer_next(struct uloop_interval *tm)
 {
 	struct itimerspec spec;
 
-	if (!tm->private.ufd.registered)
+	if (!tm->priv.ufd.registered)
 		return -1;
 
-	if (timerfd_gettime(tm->private.ufd.fd, &spec) == -1)
+	if (timerfd_gettime(tm->priv.ufd.fd, &spec) == -1)
 		return -1;
 
 	return spec.it_value.tv_sec * 1000 + spec.it_value.tv_nsec / 1000000;

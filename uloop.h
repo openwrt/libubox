@@ -98,7 +98,7 @@ struct uloop_interval
 			int64_t fired;
 			unsigned int msecs;
 		} time;
-	} private;
+	} priv;
 };
 
 struct uloop_signal

@@ -135,7 +135,7 @@ static int uloop_fetch_events(int timeout)
 		if (events[n].filter == EVFILT_TIMER) {
 			struct uloop_interval *tm = events[n].udata;
 
-			tm->private.time.fired = get_timestamp_us();
+			tm->priv.time.fired = get_timestamp_us();
 			tm->expirations += events[n].data;
 			tm->cb(tm);
 
@@ -180,8 +180,8 @@ static int timer_register(struct uloop_interval *tm, unsigned int msecs)
 {
 	struct kevent ev;
 
-	tm->private.time.msecs = msecs;
-	tm->private.time.fired = get_timestamp_us();
+	tm->priv.time.msecs = msecs;
+	tm->priv.time.fired = get_timestamp_us();
 
 	EV_SET(&ev, (uintptr_t)tm, EVFILT_TIMER, EV_ADD, NOTE_USECONDS, msecs * 1000, tm);
 
@@ -199,11 +199,11 @@ static int timer_remove(struct uloop_interval *tm)
 
 static int64_t timer_next(struct uloop_interval *tm)
 {
-	int64_t t1 = tm->private.time.fired;
+	int64_t t1 = tm->priv.time.fired;
 	int64_t t2 = get_timestamp_us();
 
 	while (t1 < t2)
-		t1 += tm->private.time.msecs * 1000;
+		t1 += tm->priv.time.msecs * 1000;
 
 	return (t1 - t2) / 1000;
 }
