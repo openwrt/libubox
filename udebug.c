@@ -467,6 +467,25 @@ void *udebug_entry_append(struct udebug_buf *buf, const void *data, uint32_t len
 	return ret;
 }
 
+uint16_t udebug_entry_trim(struct udebug_buf *buf, uint16_t len)
+{
+	struct udebug_hdr *hdr = buf->hdr;
+	struct udebug_ptr *ptr = udebug_ring_ptr(hdr, hdr->head);
+
+	if (len)
+		ptr->len -= len;
+
+	return ptr->len;
+}
+
+void udebug_entry_set_length(struct udebug_buf *buf, uint16_t len)
+{
+	struct udebug_hdr *hdr = buf->hdr;
+	struct udebug_ptr *ptr = udebug_ring_ptr(hdr, hdr->head);
+
+	ptr->len = len;
+}
+
 int udebug_entry_printf(struct udebug_buf *buf, const char *fmt, ...)
 {
 	va_list ap;
