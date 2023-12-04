@@ -460,11 +460,11 @@ int udebug_buf_init(struct udebug_buf *buf, size_t entries, size_t size)
 	buf->head_size = head_size;
 	buf->data_size = size;
 	buf->ring_size = entries;
-	buf->fd = fd;
 
 	if (__udebug_buf_map(buf))
 		goto err_close;
 
+	buf->fd = fd;
 	buf->hdr->ring_size = entries;
 	buf->hdr->data_size = size;
 
@@ -545,8 +545,12 @@ void *udebug_entry_append(struct udebug_buf *buf, const void *data, uint32_t len
 uint16_t udebug_entry_trim(struct udebug_buf *buf, uint16_t len)
 {
 	struct udebug_hdr *hdr = buf->hdr;
-	struct udebug_ptr *ptr = udebug_ring_ptr(hdr, hdr->head);
+	struct udebug_ptr *ptr;
 
+	if (!hdr)
+		return 0;
+
+	ptr = udebug_ring_ptr(hdr, hdr->head);
 	if (len)
 		ptr->len -= len;
 
@@ -556,8 +560,12 @@ uint16_t udebug_entry_trim(struct udebug_buf *buf, uint16_t len)
 void udebug_entry_set_length(struct udebug_buf *buf, uint16_t len)
 {
 	struct udebug_hdr *hdr = buf->hdr;
-	struct udebug_ptr *ptr = udebug_ring_ptr(hdr, hdr->head);
+	struct udebug_ptr *ptr;
 
+	if (!hdr)
+		return;
+
+	ptr = udebug_ring_ptr(hdr, hdr->head);
 	ptr->len = len;
 }
 
@@ -608,9 +616,14 @@ out:
 void udebug_entry_add(struct udebug_buf *buf)
 {
 	struct udebug_hdr *hdr = buf->hdr;
-	struct udebug_ptr *ptr = udebug_ring_ptr(hdr, hdr->head);
+	struct udebug_ptr *ptr;
 	uint32_t notify;
 	uint8_t *data;
+
+	if (!hdr)
+		return;
+
+	ptr = udebug_ring_ptr(hdr, hdr->head);
 
 	/* ensure strings are always 0-terminated */
 	data = udebug_buf_ptr(buf, ptr->start + ptr->len);
@@ -685,6 +698,9 @@ __udebug_buf_add(struct udebug *ctx, struct udebug_buf *buf)
 int udebug_buf_add(struct udebug *ctx, struct udebug_buf *buf,
 		   const struct udebug_buf_meta *meta)
 {
+	if (!buf->hdr)
+		return -1;
+
 	list_add_tail(&buf->list, &ctx->local_rings);
 	buf->ctx = ctx;
 	buf->meta = meta;
