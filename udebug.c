@@ -37,6 +37,7 @@
 
 #define UDEBUG_MIN_ALLOC_LEN	128
 static struct blob_buf b;
+static unsigned int page_size;
 
 static void __randname(char *template)
 {
@@ -114,12 +115,20 @@ uint64_t udebug_timestamp(void)
 static int
 __udebug_buf_map(struct udebug_buf *buf)
 {
+	unsigned int pad = 0;
 	void *ptr, *ptr2;
 
-	ptr = mmap(NULL, buf->head_size + 2 * buf->data_size, PROT_NONE,
+#ifdef mips
+	pad = page_size;
+#endif
+	ptr = mmap(NULL, buf->head_size + 2 * buf->data_size + pad, PROT_NONE,
 		   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
 	if (ptr == MAP_FAILED)
 		return -1;
+
+#ifdef mips
+	ptr = (void *)ALIGN((unsigned long)ptr, page_size);
+#endif
 
 	ptr2 = mmap(ptr, buf->head_size + buf->data_size,
 		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, buf->fd, 0);
@@ -394,18 +403,31 @@ udebug_buf_msg(struct udebug_buf *buf, enum udebug_client_msg_type type)
 	udebug_wait_for_response(buf->ctx, &msg, NULL);
 }
 
-static size_t __udebug_headsize(unsigned int ring_size, unsigned int page_size)
+static size_t __udebug_headsize(unsigned int ring_size)
 {
 	ring_size *= sizeof(struct udebug_ptr);
 	return ALIGN(sizeof(struct udebug_hdr) + ring_size, page_size);
 }
 
+static void udebug_init_page_size(void)
+{
+	if (page_size)
+		return;
+	page_size = sysconf(_SC_PAGESIZE);
+#ifdef mips
+	/* leave extra alignment room to account for data cache aliases */
+	if (page_size < 32 * 1024)
+		page_size = 32 * 1024;
+#endif
+}
+
 int udebug_buf_open(struct udebug_buf *buf, int fd, uint32_t ring_size, uint32_t data_size)
 {
+	udebug_init_page_size();
 	INIT_LIST_HEAD(&buf->list);
 	buf->fd = fd;
 	buf->ring_size = ring_size;
-	buf->head_size = __udebug_headsize(ring_size, sysconf(_SC_PAGESIZE));
+	buf->head_size = __udebug_headsize(ring_size);
 	buf->data_size = data_size;
 
 	if (buf->ring_size > (1U << 24) || buf->data_size > (1U << 29))
@@ -426,16 +448,16 @@ int udebug_buf_open(struct udebug_buf *buf, int fd, uint32_t ring_size, uint32_t
 
 int udebug_buf_init(struct udebug_buf *buf, size_t entries, size_t size)
 {
-	uint32_t pagesz = sysconf(_SC_PAGESIZE);
 	char filename[] = "/udebug.XXXXXX";
 	unsigned int order = 12;
 	uint8_t ring_order = 5;
 	size_t head_size;
 	int fd;
 
+	udebug_init_page_size();
 	INIT_LIST_HEAD(&buf->list);
-	if (size < pagesz)
-		size = pagesz;
+	if (size < page_size)
+		size = page_size;
 	while(size > 1U << order)
 		order++;
 	size = 1 << order;
@@ -446,8 +468,8 @@ int udebug_buf_init(struct udebug_buf *buf, size_t entries, size_t size)
 	if (size > (1U << 29) || entries > (1U << 24))
 		return -1;
 
-	head_size = __udebug_headsize(entries, pagesz);
-	while (ALIGN(sizeof(*buf->hdr) + (entries * 2) * sizeof(struct udebug_ptr), pagesz) == head_size)
+	head_size = __udebug_headsize(entries);
+	while (ALIGN(sizeof(*buf->hdr) + (entries * 2) * sizeof(struct udebug_ptr), page_size) == head_size)
 		entries *= 2;
 
 	fd = shm_open_anon(filename);
