@@ -113,7 +113,7 @@ uint64_t udebug_timestamp(void)
 }
 
 static int
-__udebug_buf_map(struct udebug_buf *buf)
+__udebug_buf_map(struct udebug_buf *buf, int fd)
 {
 	unsigned int pad = 0;
 	void *ptr, *ptr2;
@@ -131,12 +131,12 @@ __udebug_buf_map(struct udebug_buf *buf)
 #endif
 
 	ptr2 = mmap(ptr, buf->head_size + buf->data_size,
-		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, buf->fd, 0);
+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, fd, 0);
 	if (ptr2 != ptr)
 		goto err_unmap;
 
 	ptr2 = mmap(ptr + buf->head_size + buf->data_size, buf->data_size,
-		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, buf->fd,
+		    PROT_READ | PROT_WRITE, MAP_FIXED | MAP_SHARED, fd,
 		    buf->head_size);
 	if (ptr2 != ptr + buf->head_size + buf->data_size)
 		goto err_unmap;
@@ -425,7 +425,6 @@ int udebug_buf_open(struct udebug_buf *buf, int fd, uint32_t ring_size, uint32_t
 {
 	udebug_init_page_size();
 	INIT_LIST_HEAD(&buf->list);
-	buf->fd = fd;
 	buf->ring_size = ring_size;
 	buf->head_size = __udebug_headsize(ring_size);
 	buf->data_size = data_size;
@@ -433,7 +432,7 @@ int udebug_buf_open(struct udebug_buf *buf, int fd, uint32_t ring_size, uint32_t
 	if (buf->ring_size > (1U << 24) || buf->data_size > (1U << 29))
 		return -1;
 
-	if (__udebug_buf_map(buf))
+	if (__udebug_buf_map(buf, fd))
 		return -1;
 
 	if (buf->ring_size != buf->hdr->ring_size ||
@@ -442,6 +441,8 @@ int udebug_buf_open(struct udebug_buf *buf, int fd, uint32_t ring_size, uint32_t
 		buf->hdr = NULL;
 		return -1;
 	}
+
+	buf->fd = fd;
 
 	return 0;
 }
@@ -483,7 +484,7 @@ int udebug_buf_init(struct udebug_buf *buf, size_t entries, size_t size)
 	buf->data_size = size;
 	buf->ring_size = entries;
 
-	if (__udebug_buf_map(buf))
+	if (__udebug_buf_map(buf, fd))
 		goto err_close;
 
 	buf->fd = fd;
