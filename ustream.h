@@ -114,7 +114,8 @@ struct ustream {
 	 */
 	bool string_data;
 	bool write_error;
-	bool eof, eof_write_done;
+	bool eof;
+	uint8_t pending_cb;
 
 	enum read_blocked_reason read_blocked;
 };

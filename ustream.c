@@ -24,6 +24,8 @@
 
 #include "ustream.h"
 
+#define CB_PENDING_READ	(1 << 0)
+
 static void ustream_init_buf(struct ustream_buf *buf, int len)
 {
 	if (!len)
@@ -133,7 +135,6 @@ void ustream_init_defaults(struct ustream *s)
 	s->state_change.cb = ustream_state_change_cb;
 	s->write_error = false;
 	s->eof = false;
-	s->eof_write_done = false;
 	s->read_blocked = 0;
 
 	s->r.buffers = 0;
@@ -301,7 +302,6 @@ char *ustream_reserve(struct ustream *s, int len, int *maxlen)
 void ustream_fill_read(struct ustream *s, int len)
 {
 	struct ustream_buf *buf = s->r.data_tail;
-	int n = len;
 	int maxlen;
 
 	s->r.data_bytes += len;
@@ -321,8 +321,14 @@ void ustream_fill_read(struct ustream *s, int len)
 		buf = buf->next;
 	} while (len);
 
-	if (s->notify_read)
-		s->notify_read(s, n);
+	if (s->notify_read) {
+		if (s->pending_cb & CB_PENDING_READ)
+			return;
+
+		s->pending_cb |= CB_PENDING_READ;
+		s->notify_read(s, s->r.data_bytes);
+		s->pending_cb &= ~CB_PENDING_READ;
+	}
 }
 
 char *ustream_get_read_buf(struct ustream *s, int *buflen)
