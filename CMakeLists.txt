@@ -15,11 +15,8 @@ OPTION(BUILD_LUA "build Lua plugin" ON)
 OPTION(BUILD_EXAMPLES "build examples" ON)
 
 INCLUDE(FindPkgConfig)
-PKG_SEARCH_MODULE(JSONC json-c)
-IF(JSONC_FOUND)
-  ADD_DEFINITIONS(-DJSONC)
-  INCLUDE_DIRECTORIES(${JSONC_INCLUDE_DIRS})
-ENDIF()
+PKG_SEARCH_MODULE(JSONC json-c REQUIRED)
+INCLUDE_DIRECTORIES(${JSONC_INCLUDE_DIRS})
 
 SET(SOURCES avl.c avl-cmp.c blob.c blobmsg.c uloop.c usock.c ustream.c ustream-fd.c vlist.c utils.c safe_list.c runqueue.c md5.c kvlist.c ulog.c base64.c udebug.c udebug-remote.c)
 
