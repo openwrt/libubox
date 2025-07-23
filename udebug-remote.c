@@ -134,6 +134,9 @@ rbuf_advance_read_head(struct udebug_remote_buf *rb, uint32_t head,
 			__sync_synchronize();
 		}
 
+		if (rb->head == head)
+			break;
+
 		if (ptr->timestamp > last_ptr->timestamp)
 			continue;
 
