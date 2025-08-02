@@ -23,7 +23,7 @@ __jshn_raw_append() {
 _jshn_append() {
 	# var=$1
 	local _a_value="$2"
-	eval "${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1} \$_a_value\""
+	eval "${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1}\${${JSON_PREFIX}$1:+ }\$_a_value\""
 }
 
 _get_var() {
@@ -150,6 +150,17 @@ json_add_string() {
 	_json_add_generic string "$1" "$2" "$cur"
 }
 
+json_push_string() {
+	local cur
+	_json_get_var cur JSON_CUR
+	[ "${cur%%[0-9]*}" = "J_A" ] || {
+		[ -n "$_json_no_warning" ] || \
+			echo "WARNING: Not in an array" >&2
+		return 1
+	}
+	_json_add_generic string "" "$2" "$cur"
+}
+
 json_add_int() {
 	local cur
 	_json_get_var cur JSON_CUR
@@ -197,6 +208,42 @@ json_add_fields() {
 	done
 }
 
+json_get_position() {
+	local __dest="$1"
+	eval "export -- \"$__dest=\${JSON_CUR}\"; [ -n \"\${JSON_CUR+x}\" ]"
+}
+
+json_move_to() {
+	local cur="$1"
+	_json_set_var JSON_CUR "$cur"
+}
+
+json_get_parent_position() {
+	local __dest="$1" cur parent
+	_json_get_var cur JSON_CUR
+	parent="U_$cur"
+	eval "export -- \"$__dest=\${$parent}\"; [ -n \"\${$parent+x}\" ]"
+}
+
+json_get_root_position() {
+	local __dest="$1" cur="J_V"
+	eval "export -- \"$__dest=\${cur}\"; [ -n \"\${cur+x}\" ]"
+}
+
+json_get_index() {
+	local __dest="$1"
+	local cur parent seq
+	_json_get_var cur JSON_CUR
+	_json_get_var parent "U_$cur"
+	if [ "${parent%%[0-9]*}" != "J_A" ]; then
+		[ -n "$_json_no_warning" ] || \
+			echo "WARNING: Not inside an array" >&2
+		return 1
+	fi
+	seq="S_$parent"
+	eval "export -- \"$__dest=\${$seq}\"; [ -n \"\${$seq+x}\" ]"
+}
+
 # functions read access to json variables
 
 json_compact() {
@@ -222,6 +269,7 @@ json_dump() {
 }
 
 json_get_type() {
+	# target=$2
 	local __dest="$1"
 	local __cur
 
@@ -291,11 +339,11 @@ json_select() {
 	local type
 	local cur
 
-	[ -z "$1" ] && {
+	[ -z "$target" ] && {
 		_json_set_var JSON_CUR "J_V"
 		return 0
 	}
-	[[ "$1" == ".." ]] && {
+	[[ "$target" == ".." ]] && {
 		_json_get_var cur JSON_CUR
 		_json_get_var cur "U_$cur"
 		_json_set_var JSON_CUR "$cur"
@@ -309,13 +357,15 @@ json_select() {
 		;;
 		*)
 			[ -n "$_json_no_warning" ] || \
-				echo "WARNING: Variable '$target' does not exist or is not an array/object"
+				echo "WARNING: Variable '$target' does not exist or is not an array/object" >&2
 			return 1
 		;;
 	esac
 }
 
 json_is_a() {
+	# target=$1
+	# type=$2
 	local type
 
 	json_get_type type "$1"
