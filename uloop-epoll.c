@@ -162,7 +162,10 @@ err:
 
 static int timer_remove(struct uloop_interval *tm)
 {
-	int ret = __uloop_fd_delete(&tm->priv.ufd);
+	if (!tm->priv.ufd.registered)
+		return 0;
+
+	int ret = uloop_fd_delete(&tm->priv.ufd);
 
 	if (ret == 0) {
 		close(tm->priv.ufd.fd);
