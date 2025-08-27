@@ -1,0 +1,62 @@
+name: 'Run tests'
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build_test:
+    strategy:
+      matrix:
+        include:
+          - compiler: "-DCMAKE_C_COMPILER=clang"
+          - compiler: "-DCMAKE_C_COMPILER=gcc"
+
+    name: Build and run tests
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+
+    steps:
+
+      - name: Add Debian experimental
+        run: |
+           echo "deb http://deb.debian.org/debian/ experimental main" >> /etc/apt/sources.list
+
+      - name: Install compiler
+        run: |
+          apt update
+          apt install -y cmake build-essential lua5.1 pkgconf libjson-c-dev liblua5.1-0-dev python3.11-venv clang libc++abi-dev libc++-dev
+          apt -t experimental install -y valgrind
+          useradd -ms /bin/bash buildbot
+
+      - name: Checkout libubox
+        uses: actions/checkout@v3
+        with:
+          path: libubox
+
+      - name: Create build directory
+        run: mkdir build
+
+      - name: Fix permission
+        run: chown -R buildbot:buildbot build libubox
+
+      - name: Run cmake
+        shell: su buildbot -c "sh -e {0}"
+        working-directory: build
+        run: cmake ../libubox -DUNIT_TESTING=true ${{ matrix.compiler }}
+
+      - name: Run build
+        shell: su buildbot -c "sh -e {0}"
+        working-directory: build
+        run: make
+
+      - name: Run tests
+        shell: su buildbot -c "sh -e {0}"
+        working-directory: build
+        run: make test
+
+      - name: Show logs
+        shell: su buildbot -c "sh -e {0}"
+        working-directory: build
+        run: cat Testing/Temporary/LastTest.log
