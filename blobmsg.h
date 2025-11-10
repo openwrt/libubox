@@ -29,7 +29,7 @@ enum blobmsg_type {
 	BLOBMSG_TYPE_STRING,
 	BLOBMSG_TYPE_INT64,
 	BLOBMSG_TYPE_INT32,
-	BLOBMSG_TYPE_INT16,
+	__BLOBMSG_TYPE_DEPRECATED_INT16,
 	BLOBMSG_TYPE_INT8,
 	BLOBMSG_TYPE_BOOL = BLOBMSG_TYPE_INT8,
 	BLOBMSG_TYPE_DOUBLE,
@@ -211,13 +211,6 @@ blobmsg_add_u8(struct blob_buf *buf, const char *name, uint8_t val)
 }
 
 static inline int
-blobmsg_add_u16(struct blob_buf *buf, const char *name, uint16_t val)
-{
-	val = cpu_to_be16(val);
-	return blobmsg_add_field(buf, BLOBMSG_TYPE_INT16, name, &val, 2);
-}
-
-static inline int
 blobmsg_add_u32(struct blob_buf *buf, const char *name, uint32_t val)
 {
 	val = cpu_to_be32(val);
@@ -243,6 +236,8 @@ blobmsg_add_blob(struct blob_buf *buf, struct blob_attr *attr)
 	return blobmsg_add_field(buf, blobmsg_type(attr), blobmsg_name(attr),
 				 blobmsg_data(attr), blobmsg_data_len(attr));
 }
+
+#define blobmsg_add_u16	blobmsg_add_u32
 
 void *blobmsg_open_nested(struct blob_buf *buf, const char *name, bool array);
 
@@ -285,11 +280,6 @@ static inline bool blobmsg_get_bool(struct blob_attr *attr)
 	return *(uint8_t *) blobmsg_data(attr);
 }
 
-static inline uint16_t blobmsg_get_u16(struct blob_attr *attr)
-{
-	return be16_to_cpu(*(uint16_t *) blobmsg_data(attr));
-}
-
 static inline uint32_t blobmsg_get_u32(struct blob_attr *attr)
 {
 	return be32_to_cpu(*(uint32_t *) blobmsg_data(attr));
@@ -303,6 +293,8 @@ static inline uint64_t blobmsg_get_u64(struct blob_attr *attr)
 	return tmp;
 }
 
+#define blobmsg_get_u16	blobmsg_get_u32
+
 static inline uint64_t blobmsg_cast_u64(struct blob_attr *attr)
 {
 	uint64_t tmp = 0;
@@ -311,8 +303,6 @@ static inline uint64_t blobmsg_cast_u64(struct blob_attr *attr)
 		tmp = blobmsg_get_u64(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT32)
 		tmp = blobmsg_get_u32(attr);
-	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT16)
-		tmp = blobmsg_get_u16(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT8)
 		tmp = blobmsg_get_u8(attr);
 
@@ -327,8 +317,6 @@ static inline int64_t blobmsg_cast_s64(struct blob_attr *attr)
 		tmp = blobmsg_get_u64(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT32)
 		tmp = (int32_t)blobmsg_get_u32(attr);
-	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT16)
-		tmp = (int16_t)blobmsg_get_u16(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT8)
 		tmp = (int8_t)blobmsg_get_u8(attr);
 

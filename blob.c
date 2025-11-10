@@ -192,7 +192,6 @@ blob_nest_end(struct blob_buf *buf, void *cookie)
 static const size_t blob_type_minlen[BLOB_ATTR_LAST] = {
 	[BLOB_ATTR_STRING] = 1,
 	[BLOB_ATTR_INT8] = sizeof(uint8_t),
-	[BLOB_ATTR_INT16] = sizeof(uint16_t),
 	[BLOB_ATTR_INT32] = sizeof(uint32_t),
 	[BLOB_ATTR_INT64] = sizeof(uint64_t),
 	[BLOB_ATTR_DOUBLE] = sizeof(double),

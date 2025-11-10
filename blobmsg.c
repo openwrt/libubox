@@ -17,7 +17,6 @@
 
 static const int blob_type[__BLOBMSG_TYPE_LAST] = {
 	[BLOBMSG_TYPE_INT8] = BLOB_ATTR_INT8,
-	[BLOBMSG_TYPE_INT16] = BLOB_ATTR_INT16,
 	[BLOBMSG_TYPE_INT32] = BLOB_ATTR_INT32,
 	[BLOBMSG_TYPE_INT64] = BLOB_ATTR_INT64,
 	[BLOBMSG_TYPE_DOUBLE] = BLOB_ATTR_DOUBLE,
@@ -202,7 +201,6 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 			if (policy[i].type == BLOBMSG_CAST_INT64 &&
 			    (blob_id(attr) != BLOBMSG_TYPE_INT64 &&
 			     blob_id(attr) != BLOBMSG_TYPE_INT32 &&
-			     blob_id(attr) != BLOBMSG_TYPE_INT16 &&
 			     blob_id(attr) != BLOBMSG_TYPE_INT8))
 				continue;
 
