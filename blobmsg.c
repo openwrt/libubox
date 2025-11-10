@@ -16,7 +16,7 @@
 #include "blobmsg.h"
 
 static const int blob_type[__BLOBMSG_TYPE_LAST] = {
-	[BLOBMSG_TYPE_INT8] = BLOB_ATTR_INT8,
+	[BLOBMSG_TYPE_BOOL] = BLOB_ATTR_BOOL,
 	[BLOBMSG_TYPE_INT32] = BLOB_ATTR_INT32,
 	[BLOBMSG_TYPE_INT64] = BLOB_ATTR_INT64,
 	[BLOBMSG_TYPE_DOUBLE] = BLOB_ATTR_DOUBLE,
@@ -201,7 +201,7 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 			if (policy[i].type == BLOBMSG_CAST_INT64 &&
 			    (blob_id(attr) != BLOBMSG_TYPE_INT64 &&
 			     blob_id(attr) != BLOBMSG_TYPE_INT32 &&
-			     blob_id(attr) != BLOBMSG_TYPE_INT8))
+			     blob_id(attr) != BLOBMSG_TYPE_BOOL))
 				continue;
 
 			if (blobmsg_namelen(hdr) != pslen[i])
