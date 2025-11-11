@@ -62,6 +62,7 @@ jobs:
       - name: Prepare build
         run: |
           mkdir -p ${GITHUB_WORKSPACE}/build
+          mkdir -p ${GITHUB_WORKSPACE}/depends/lua
 
       - name: Build json-c
         working-directory: depends/json-c
@@ -75,13 +76,13 @@ jobs:
           make install
 
       - name: Build lua
+        working-directory: depends/lua
         run: |
-          mkdir -p depends/lua
           wget -qO- https://www.lua.org/ftp/lua-${{ env.LUA_VERSION }}.tar.gz | \
-            tar zxvf - -C depends/lua --strip-components=1
-          sed -i '/#define LUA_USE_READLINE/d' depends/lua/src/luaconf.h
-          sed -i 's/ -lreadline -lhistory -lncurses//g' depends/lua/src/Makefile
-          make -C depends/lua linux install \
+            tar zxvf - --strip-components=1
+          sed -i '/#define LUA_USE_READLINE/d' src/luaconf.h
+          sed -i 's/ -lreadline -lhistory -lncurses//g' src/Makefile
+          make linux install \
             CC=${{ matrix.gcc }} \
             INSTALL_TOP=${GITHUB_WORKSPACE}/build
 
@@ -157,3 +158,60 @@ jobs:
           echo "| :---: | :---: | :---: | :---: | :---: |" >> $GITHUB_STEP_SUMMARY
           echo "| basic | ${size_aarch64_basic_so} | ${size_arm_basic_so} | ${size_mips_basic_so} | ${size_x86_64_basic_so} |" >> $GITHUB_STEP_SUMMARY
           echo "| full | ${size_aarch64_full_so} | ${size_arm_full_so} | ${size_mips_full_so} | ${size_x86_64_full_so} |" >> $GITHUB_STEP_SUMMARY
+
+  tests:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout libubox
+        uses: actions/checkout@v5
+
+      - name: Checkout json-c
+        uses: actions/checkout@v5
+        with:
+          repository: json-c/json-c
+          path: depends/json-c
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install valgrind
+
+      - name: Prepare build
+        run: |
+          mkdir -p ${GITHUB_WORKSPACE}/build
+          mkdir -p ${GITHUB_WORKSPACE}/depends/lua
+
+      - name: Build json-c
+        working-directory: depends/json-c
+        run: |
+          cmake \
+            -DCMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/build \
+            -DBUILD_SHARED_LIBS=OFF -DDISABLE_EXTRA_LIBS=ON  \
+            --install-prefix ${GITHUB_WORKSPACE}/build
+          make
+          make install
+
+      - name: Build lua
+        working-directory: depends/lua
+        run: |
+          wget -qO- https://www.lua.org/ftp/lua-${{ env.LUA_VERSION }}.tar.gz | \
+            tar zxvf - --strip-components=1
+          sed -i '/#define LUA_USE_READLINE/d' src/luaconf.h
+          sed -i 's/ -lreadline -lhistory -lncurses//g' src/Makefile
+          make linux install \
+            INSTALL_TOP=${GITHUB_WORKSPACE}/build
+
+      - name: Build libubox
+        run: |
+          cmake \
+            -DCMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/build \
+            -DBUILD_LUA=ON \
+            -DBUILD_EXAMPLES=ON \
+            -DUNIT_TESTING=ON \
+            -DLUAPATH=${GITHUB_WORKSPACE}/build/lib/lua
+          make
+
+      - name: Execute tests
+        run: |
+          make test CTEST_OUTPUT_ON_FAILURE=1
