@@ -129,16 +129,26 @@ blob_get_bool(const struct blob_attr *attr)
 }
 
 static inline uint8_t
-blob_get_u8(const struct blob_attr *attr)
+__blob_get_u8(const struct blob_attr *attr)
 {
 	return *((uint8_t *) attr->data);
 }
+static inline __deprecated uint8_t
+blob_get_u8(const struct blob_attr *attr)
+{
+	return __blob_get_u8(attr);
+}
 
 static inline uint16_t
-blob_get_u16(const struct blob_attr *attr)
+__blob_get_u16(const struct blob_attr *attr)
 {
 	uint16_t *tmp = (uint16_t*)attr->data;
 	return be16_to_cpu(*tmp);
+}
+static inline __deprecated uint16_t
+blob_get_u16(const struct blob_attr *attr)
+{
+	return __blob_get_u16(attr);
 }
 
 static inline uint32_t
@@ -157,16 +167,16 @@ blob_get_u64(const struct blob_attr *attr)
 	return tmp;
 }
 
-static inline int8_t
+static inline __deprecated int8_t
 blob_get_int8(const struct blob_attr *attr)
 {
-	return blob_get_u8(attr);
+	return __blob_get_u8(attr);
 }
 
-static inline int16_t
+static inline __deprecated int16_t
 blob_get_int16(const struct blob_attr *attr)
 {
-	return blob_get_u16(attr);
+	return __blob_get_u16(attr);
 }
 
 static inline int32_t
@@ -221,13 +231,13 @@ blob_put_bool(struct blob_buf *buf, int id, bool val)
 	return blob_put(buf, id, &val, sizeof(val));
 }
 
-static inline struct blob_attr *
+static inline __deprecated struct blob_attr *
 blob_put_u8(struct blob_buf *buf, int id, uint8_t val)
 {
 	return blob_put(buf, id, &val, sizeof(val));
 }
 
-static inline struct blob_attr *
+static inline __deprecated struct blob_attr *
 blob_put_u16(struct blob_buf *buf, int id, uint16_t val)
 {
 	val = cpu_to_be16(val);
