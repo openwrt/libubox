@@ -284,4 +284,25 @@ test_cmd_return() {
 %VAR% ow"
 }
 
+test_jshn_append_no_leading_space() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	# Test appending to empty variable - should not have leading space
+	var=''
+	_jshn_append var 'foo'
+	assertEquals "foo" "$var"
+
+	# Test appending to non-empty variable - should have space separator
+	var='bar'
+	_jshn_append var 'foo'
+	assertEquals "bar foo" "$var"
+
+	# Test multiple appends to empty variable
+	var=''
+	_jshn_append var 'first'
+	_jshn_append var 'second'
+	assertEquals "first second" "$var"
+}
+
 . ./shunit2/shunit2
