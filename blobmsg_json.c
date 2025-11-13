@@ -60,7 +60,7 @@ bool blobmsg_add_json_element(struct blob_buf *b, const char *name, json_object 
 		blobmsg_add_string(b, name, json_object_get_string(obj));
 		break;
 	case json_type_boolean:
-		blobmsg_add_u8(b, name, json_object_get_boolean(obj));
+		blobmsg_add_bool(b, name, json_object_get_boolean(obj));
 		break;
 	case json_type_int: {
 		int64_t i64 = json_object_get_int64(obj);

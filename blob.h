@@ -122,6 +122,12 @@ blob_pad_len(const struct blob_attr *attr)
 	return len;
 }
 
+static inline bool
+blob_get_bool(const struct blob_attr *attr)
+{
+	return !!(*((uint8_t *)attr->data));
+}
+
 static inline uint8_t
 blob_get_u8(const struct blob_attr *attr)
 {
@@ -207,6 +213,12 @@ static inline struct blob_attr *
 blob_put_string(struct blob_buf *buf, int id, const char *str)
 {
 	return blob_put(buf, id, str, strlen(str) + 1);
+}
+
+static inline struct blob_attr *
+blob_put_bool(struct blob_buf *buf, int id, bool val)
+{
+	return blob_put(buf, id, &val, sizeof(val));
 }
 
 static inline struct blob_attr *

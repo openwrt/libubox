@@ -193,6 +193,12 @@ blobmsg_parse_array_attr(const struct blobmsg_policy *policy, int policy_len,
 }
 
 static inline int
+blobmsg_add_bool(struct blob_buf *buf, const char *name, bool val)
+{
+	return blobmsg_add_field(buf, BLOBMSG_TYPE_BOOL, name, &val, 1);
+}
+
+static inline int
 blobmsg_add_double(struct blob_buf *buf, const char *name, double val)
 {
 	union {
@@ -282,7 +288,7 @@ static inline uint8_t blobmsg_get_u8(struct blob_attr *attr)
 
 static inline bool blobmsg_get_bool(struct blob_attr *attr)
 {
-	return *(uint8_t *) blobmsg_data(attr);
+	return !!(*(uint8_t *) blobmsg_data(attr));
 }
 
 static inline uint16_t blobmsg_get_u16(struct blob_attr *attr)
