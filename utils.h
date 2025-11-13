@@ -211,6 +211,10 @@ int clock_gettime(int type, struct timespec *tv);
 
 #endif
 
+#ifndef __aligned
+#define __aligned(n) __attribute__((aligned(n)))
+#endif
+
 #ifndef __packed
 #define __packed __attribute__((packed))
 #endif
