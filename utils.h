@@ -227,6 +227,10 @@ int clock_gettime(int type, struct timespec *tv);
 #define __hidden __attribute__((visibility("hidden")))
 #endif
 
+#ifndef __unused
+#define __unused __attribute__((unused))
+#endif
+
 #ifndef __has_attribute
 # define __has_attribute(x) 0
 #endif
