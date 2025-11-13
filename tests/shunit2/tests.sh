@@ -1,3 +1,5 @@
+#!/bin/bash
+
 JSON_SCRIPT=tests.json
 JSON_SCRIPT_BIN=${TEST_JSON_SCRIPT=:-./json_script-example}
 FILE_STDOUT=tests.stdout
