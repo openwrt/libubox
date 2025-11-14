@@ -73,7 +73,8 @@ jobs:
             -DBUILD_SHARED_LIBS=OFF \
             -DDISABLE_EXTRA_LIBS=ON \
             -DBUILD_TESTING=OFF \
-            --install-prefix ${GITHUB_WORKSPACE}/build
+            --install-prefix ${GITHUB_WORKSPACE}/build \
+            -B . -S .
           make
           make install
 
@@ -97,7 +98,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{ matrix.gcc }} \
             -DCMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/build \
             -DBUILD_LUA=OFF -DBUILD_EXAMPLES=OFF \
-            -B $BUILD_DIR
+            -B $BUILD_DIR -S .
           make -C $BUILD_DIR
           echo "size_${{ matrix.arch }}_a=$( find $BUILD_DIR -type f -name libubox.a -printf '%s' )" >> $GITHUB_OUTPUT
           echo "size_${{ matrix.arch }}_so=$( find $BUILD_DIR -type f -name libubox.so -printf '%s' )" >> $GITHUB_OUTPUT
@@ -112,7 +113,7 @@ jobs:
             -DCMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/build \
             -DBUILD_LUA=ON -DBUILD_EXAMPLES=ON \
             -DLUAPATH=${GITHUB_WORKSPACE}/build/lib/lua \
-            -B $BUILD_DIR
+            -B $BUILD_DIR -S .
           make -C $BUILD_DIR
           echo "size_${{ matrix.arch }}_a=$( find $BUILD_DIR -type f -name libubox.a -printf '%s' )" >> $GITHUB_OUTPUT
           echo "size_${{ matrix.arch }}_so=$( find $BUILD_DIR -type f -name libubox.so -printf '%s' )" >> $GITHUB_OUTPUT
@@ -193,7 +194,8 @@ jobs:
             -DBUILD_SHARED_LIBS=OFF \
             -DDISABLE_EXTRA_LIBS=ON \
             -DBUILD_TESTING=OFF \
-            --install-prefix ${GITHUB_WORKSPACE}/build
+            --install-prefix ${GITHUB_WORKSPACE}/build \
+            -B . -S .
           make
           make install
 
@@ -214,7 +216,8 @@ jobs:
             -DBUILD_LUA=ON \
             -DBUILD_EXAMPLES=ON \
             -DUNIT_TESTING=ON \
-            -DLUAPATH=${GITHUB_WORKSPACE}/build/lib/lua
+            -DLUAPATH=${GITHUB_WORKSPACE}/build/lib/lua \
+            -B . -S .
           make
 
       - name: Test libubox
