@@ -219,6 +219,10 @@ int clock_gettime(int type, struct timespec *tv);
 #define __constructor __attribute__((constructor))
 #endif
 
+#ifndef __deprecated
+#define __deprecated __attribute__((deprecated))
+#endif
+
 #ifndef __destructor
 #define __destructor __attribute__((destructor))
 #endif

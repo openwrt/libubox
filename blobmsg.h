@@ -193,6 +193,12 @@ blobmsg_parse_array_attr(const struct blobmsg_policy *policy, int policy_len,
 }
 
 static inline int
+blobmsg_add_bool(struct blob_buf *buf, const char *name, bool val)
+{
+	return blobmsg_add_field(buf, BLOBMSG_TYPE_BOOL, name, &val, 1);
+}
+
+static inline int
 blobmsg_add_double(struct blob_buf *buf, const char *name, double val)
 {
 	union {
@@ -205,16 +211,26 @@ blobmsg_add_double(struct blob_buf *buf, const char *name, double val)
 }
 
 static inline int
-blobmsg_add_u8(struct blob_buf *buf, const char *name, uint8_t val)
+__blobmsg_add_u8(struct blob_buf *buf, const char *name, uint8_t val)
 {
 	return blobmsg_add_field(buf, BLOBMSG_TYPE_INT8, name, &val, 1);
 }
+static inline __deprecated int
+blobmsg_add_u8(struct blob_buf *buf, const char *name, uint8_t val)
+{
+	return __blobmsg_add_u8(buf, name, val);
+}
 
 static inline int
-blobmsg_add_u16(struct blob_buf *buf, const char *name, uint16_t val)
+__blobmsg_add_u16(struct blob_buf *buf, const char *name, uint16_t val)
 {
 	val = cpu_to_be16(val);
 	return blobmsg_add_field(buf, BLOBMSG_TYPE_INT16, name, &val, 2);
+}
+static inline __deprecated int
+blobmsg_add_u16(struct blob_buf *buf, const char *name, uint16_t val)
+{
+	return __blobmsg_add_u16(buf, name, val);
 }
 
 static inline int
@@ -275,19 +291,27 @@ static inline int blobmsg_buf_init(struct blob_buf *buf)
 	return blob_buf_init(buf, BLOBMSG_TYPE_TABLE);
 }
 
-static inline uint8_t blobmsg_get_u8(struct blob_attr *attr)
+static inline uint8_t __blobmsg_get_u8(struct blob_attr *attr)
 {
 	return *(uint8_t *) blobmsg_data(attr);
+}
+static inline __deprecated uint8_t blobmsg_get_u8(struct blob_attr *attr)
+{
+	return __blobmsg_get_u8(attr);
 }
 
 static inline bool blobmsg_get_bool(struct blob_attr *attr)
 {
-	return *(uint8_t *) blobmsg_data(attr);
+	return !!(*(uint8_t *) blobmsg_data(attr));
 }
 
-static inline uint16_t blobmsg_get_u16(struct blob_attr *attr)
+static inline uint16_t __blobmsg_get_u16(struct blob_attr *attr)
 {
 	return be16_to_cpu(*(uint16_t *) blobmsg_data(attr));
+}
+static inline __deprecated uint16_t blobmsg_get_u16(struct blob_attr *attr)
+{
+	return __blobmsg_get_u16(attr);
 }
 
 static inline uint32_t blobmsg_get_u32(struct blob_attr *attr)
@@ -312,9 +336,9 @@ static inline uint64_t blobmsg_cast_u64(struct blob_attr *attr)
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT32)
 		tmp = blobmsg_get_u32(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT16)
-		tmp = blobmsg_get_u16(attr);
+		tmp = __blobmsg_get_u16(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT8)
-		tmp = blobmsg_get_u8(attr);
+		tmp = __blobmsg_get_u8(attr);
 
 	return tmp;
 }
@@ -328,9 +352,9 @@ static inline int64_t blobmsg_cast_s64(struct blob_attr *attr)
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT32)
 		tmp = (int32_t)blobmsg_get_u32(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT16)
-		tmp = (int16_t)blobmsg_get_u16(attr);
+		tmp = (int16_t)__blobmsg_get_u16(attr);
 	else if (blobmsg_type(attr) == BLOBMSG_TYPE_INT8)
-		tmp = (int8_t)blobmsg_get_u8(attr);
+		tmp = (int8_t)__blobmsg_get_u8(attr);
 
 	return tmp;
 }

@@ -41,10 +41,10 @@ static void dump_attr_data(struct blob_attr *data, int indent, int next_indent)
 		indent_printf(indent, "%s (str)\n", blobmsg_get_string(data));
 		break;
 	case BLOBMSG_TYPE_INT8:
-		indent_printf(indent, "%d (i8)\n", (int8_t) blobmsg_get_u8(data));
+		indent_printf(indent, "%d (i8)\n", (int8_t) __blobmsg_get_u8(data));
 		break;
 	case BLOBMSG_TYPE_INT16:
-		indent_printf(indent, "%d (i16)\n", (int16_t) blobmsg_get_u16(data));
+		indent_printf(indent, "%d (i16)\n", (int16_t) __blobmsg_get_u16(data));
 		break;
 	case BLOBMSG_TYPE_INT32:
 		indent_printf(indent, "%d (i32)\n", (int32_t) blobmsg_get_u32(data));
@@ -121,12 +121,12 @@ fill_message(struct blob_buf *buf)
 	tbl = blobmsg_open_table(buf, "testdata");
 	blobmsg_add_double(buf, "dbl-min", DBL_MIN);
 	blobmsg_add_double(buf, "dbl-max", DBL_MAX);
-	blobmsg_add_u8(buf, "foo", 0);
-	blobmsg_add_u8(buf, "poo", 100);
-	blobmsg_add_u8(buf, "moo-min", INT8_MIN);
-	blobmsg_add_u8(buf, "moo-max", INT8_MAX);
-	blobmsg_add_u16(buf, "bar-min", INT16_MIN);
-	blobmsg_add_u16(buf, "bar-max", INT16_MAX);
+	__blobmsg_add_u8(buf, "foo", 0);
+	__blobmsg_add_u8(buf, "poo", 100);
+	__blobmsg_add_u8(buf, "moo-min", INT8_MIN);
+	__blobmsg_add_u8(buf, "moo-max", INT8_MAX);
+	__blobmsg_add_u16(buf, "bar-min", INT16_MIN);
+	__blobmsg_add_u16(buf, "bar-max", INT16_MAX);
 	blobmsg_add_u32(buf, "baz-min", INT32_MIN);
 	blobmsg_add_u32(buf, "baz-max", INT32_MAX);
 	blobmsg_add_u64(buf, "taz-min", INT64_MIN);
@@ -135,12 +135,12 @@ fill_message(struct blob_buf *buf)
 	blobmsg_close_table(buf, tbl);
 
 	tbl = blobmsg_open_array(buf, "list");
-	blobmsg_add_u8(buf, NULL, 0);
-	blobmsg_add_u8(buf, NULL, 100);
-	blobmsg_add_u8(buf, NULL, INT8_MIN);
-	blobmsg_add_u8(buf, NULL, INT8_MAX);
-	blobmsg_add_u16(buf, NULL, INT16_MIN);
-	blobmsg_add_u16(buf, NULL, INT16_MAX);
+	__blobmsg_add_u8(buf, NULL, 0);
+	__blobmsg_add_u8(buf, NULL, 100);
+	__blobmsg_add_u8(buf, NULL, INT8_MIN);
+	__blobmsg_add_u8(buf, NULL, INT8_MAX);
+	__blobmsg_add_u16(buf, NULL, INT16_MIN);
+	__blobmsg_add_u16(buf, NULL, INT16_MAX);
 	blobmsg_add_u32(buf, NULL, INT32_MIN);
 	blobmsg_add_u32(buf, NULL, INT32_MAX);
 	blobmsg_add_u64(buf, NULL, INT64_MIN);
