@@ -469,6 +469,43 @@ test_jshn_append_via_json_script() {
 	json_add_string "second" "value2"
 	json_get_keys keys
 	assertEquals "first second" "$keys"
+	set -u
+}
+
+test_jshn_get_index() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	local index
+
+	json_init
+
+	json_add_object "DHCP4"
+
+	json_add_array "networks"
+
+	json_add_object ""
+	json_get_index index
+	json_add_int "id" 1
+	json_add_string "subnet" "192.168.1.0/24"
+	json_close_object
+
+	json_add_object ""
+	json_add_int "id" 2
+	json_add_string "subnet" "192.168.2.0/24"
+	json_close_object
+
+	json_select "$index" # revisit first anonymous object
+	json_add_int "valid-lifetime" 3600
+	json_select .. # pop back into array
+
+	json_close_array # networks
+
+	json_close_object # DHCP4
+
+	assertEquals '{ "DHCP4": { "networks": [ { "id": 1, "subnet": "192.168.1.0\/24", "valid-lifetime": 3600 }, { "id": 2, "subnet": "192.168.2.0\/24" } ] } }' "$(json_dump)"
 
 	set -u
 }
