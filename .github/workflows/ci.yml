@@ -217,6 +217,6 @@ jobs:
             -DLUAPATH=${GITHUB_WORKSPACE}/build/lib/lua
           make
 
-      - name: Execute tests
+      - name: Test libubox
         run: |
           make test CTEST_OUTPUT_ON_FAILURE=1
