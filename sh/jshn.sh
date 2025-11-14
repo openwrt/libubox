@@ -197,6 +197,20 @@ json_add_fields() {
 	done
 }
 
+json_get_index() {
+	local __dest="$1"
+	local cur parent seq
+	_json_get_var cur JSON_CUR
+	_json_get_var parent "U_$cur"
+	if [ "${parent%%[0-9]*}" != "J_A" ]; then
+	       [ -n "$_json_no_warning" ] || \
+		       echo "WARNING: Not inside an array" >&2
+	       return 1
+	fi
+	seq="S_$parent"
+	eval "export -- \"$__dest=\${$seq}\"; [ -n \"\${$seq+x}\" ]"
+}
+
 # functions read access to json variables
 
 json_compact() {
