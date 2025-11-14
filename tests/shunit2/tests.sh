@@ -1,3 +1,5 @@
+#!/bin/bash
+
 JSON_SCRIPT=tests.json
 JSON_SCRIPT_BIN=${TEST_JSON_SCRIPT=:-./json_script-example}
 FILE_STDOUT=tests.stdout
@@ -303,6 +305,27 @@ test_jshn_append_no_leading_space() {
 	_jshn_append var 'first'
 	_jshn_append var 'second'
 	assertEquals "first second" "$var"
+}
+
+test_jshn_append_via_json_script() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	# __SHUNIT_SHELL_FLAGS='u' results in 'line 6: JSON_UNSET: unbound variable' in json_cleanup()
+	set +u
+
+	# Test appending first key to empty variable without leading space
+	json_init
+	json_add_string "first" "value1"
+	json_get_keys keys
+	assertEquals "first" "$keys"
+
+	# Test appending second key should maintain no leading space on first key
+	json_add_string "second" "value2"
+	json_get_keys keys
+	assertEquals "first second" "$keys"
+
+	set -u
 }
 
 . ./shunit2/shunit2
