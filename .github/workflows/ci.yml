@@ -183,6 +183,7 @@ jobs:
         run: |
           mkdir -p ${GITHUB_WORKSPACE}/build
           mkdir -p ${GITHUB_WORKSPACE}/depends/lua
+          echo "${GITHUB_WORKSPACE}/build/bin" >> $GITHUB_PATH
 
       - name: Build json-c
         working-directory: depends/json-c
