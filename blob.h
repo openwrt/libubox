@@ -35,8 +35,8 @@ enum {
 	BLOB_ATTR_NESTED,
 	BLOB_ATTR_BINARY,
 	BLOB_ATTR_STRING,
-	BLOB_ATTR_INT8,
-	BLOB_ATTR_INT16,
+	BLOB_ATTR_BOOL,
+	__BLOB_ATTR_DEPRECATED_INT16,
 	BLOB_ATTR_INT32,
 	BLOB_ATTR_INT64,
 	BLOB_ATTR_DOUBLE,
@@ -122,17 +122,10 @@ blob_pad_len(const struct blob_attr *attr)
 	return len;
 }
 
-static inline uint8_t
-blob_get_u8(const struct blob_attr *attr)
+static inline bool
+blob_get_bool(const struct blob_attr *attr)
 {
-	return *((uint8_t *) attr->data);
-}
-
-static inline uint16_t
-blob_get_u16(const struct blob_attr *attr)
-{
-	uint16_t *tmp = (uint16_t*)attr->data;
-	return be16_to_cpu(*tmp);
+	return *((bool *) attr->data);
 }
 
 static inline uint32_t
@@ -151,17 +144,8 @@ blob_get_u64(const struct blob_attr *attr)
 	return tmp;
 }
 
-static inline int8_t
-blob_get_int8(const struct blob_attr *attr)
-{
-	return blob_get_u8(attr);
-}
-
-static inline int16_t
-blob_get_int16(const struct blob_attr *attr)
-{
-	return blob_get_u16(attr);
-}
+#define blob_get_u8	blob_get_bool
+#define blob_get_u16	blob_get_u32
 
 static inline int32_t
 blob_get_int32(const struct blob_attr *attr)
@@ -180,6 +164,9 @@ blob_get_string(const struct blob_attr *attr)
 {
 	return attr->data;
 }
+
+#define blob_get_int8	blob_get_bool
+#define blob_get_int16	blob_get_int32
 
 static inline struct blob_attr *
 blob_next(const struct blob_attr *attr)
@@ -210,15 +197,8 @@ blob_put_string(struct blob_buf *buf, int id, const char *str)
 }
 
 static inline struct blob_attr *
-blob_put_u8(struct blob_buf *buf, int id, uint8_t val)
+blob_put_bool(struct blob_buf *buf, int id, bool val)
 {
-	return blob_put(buf, id, &val, sizeof(val));
-}
-
-static inline struct blob_attr *
-blob_put_u16(struct blob_buf *buf, int id, uint16_t val)
-{
-	val = cpu_to_be16(val);
 	return blob_put(buf, id, &val, sizeof(val));
 }
 
@@ -236,8 +216,8 @@ blob_put_u64(struct blob_buf *buf, int id, uint64_t val)
 	return blob_put(buf, id, &val, sizeof(val));
 }
 
-#define blob_put_int8	blob_put_u8
-#define blob_put_int16	blob_put_u16
+#define blob_put_int8	blob_put_bool
+#define blob_put_int16	blob_put_u32
 #define blob_put_int32	blob_put_u32
 #define blob_put_int64	blob_put_u64
 
