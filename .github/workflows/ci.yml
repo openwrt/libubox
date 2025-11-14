@@ -104,7 +104,8 @@ jobs:
           cmake \
             -DCMAKE_C_COMPILER=${{ matrix.gcc }} \
             -DCMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/build \
-            -DBUILD_LUA=OFF -DBUILD_EXAMPLES=OFF \
+            -DBUILD_LUA=OFF \
+            -DBUILD_EXAMPLES=OFF \
             -B $BUILD_DIR -S .
           make -C $BUILD_DIR
           echo "size_${{ matrix.arch }}_a=$( find $BUILD_DIR -type f -name libubox.a -printf '%s' )" >> $GITHUB_OUTPUT
@@ -118,7 +119,8 @@ jobs:
           cmake \
             -DCMAKE_C_COMPILER=${{ matrix.gcc }} \
             -DCMAKE_PREFIX_PATH=${GITHUB_WORKSPACE}/build \
-            -DBUILD_LUA=ON -DBUILD_EXAMPLES=ON \
+            -DBUILD_LUA=ON \
+            -DBUILD_EXAMPLES=ON \
             -DLUAPATH=${GITHUB_WORKSPACE}/build/lib/lua \
             -B $BUILD_DIR -S .
           make -C $BUILD_DIR
@@ -165,7 +167,7 @@ jobs:
           echo "### ${GITHUB_WORKFLOW} sizes :floppy_disk:" >> $GITHUB_STEP_SUMMARY
           echo "| libubox.a | aarch64 | arm | mips | powerpc | x86_64 |" >> $GITHUB_STEP_SUMMARY
           echo "| :---: | :---: | :---: | :---: | :---: | :---: |" >> $GITHUB_STEP_SUMMARY
-          echo "| basic | ${size_aarch64_basic_a} | ${size_arm_basic_a} | ${size_mips_basic_a} | ${size_powerpc_basic_sa} | ${size_x86_64_basic_a} |" >> $GITHUB_STEP_SUMMARY
+          echo "| basic | ${size_aarch64_basic_a} | ${size_arm_basic_a} | ${size_mips_basic_a} | ${size_powerpc_basic_a} | ${size_x86_64_basic_a} |" >> $GITHUB_STEP_SUMMARY
           echo "| full | ${size_aarch64_full_a} | ${size_arm_full_a} | ${size_mips_full_a} | ${size_powerpc_full_a} | ${size_x86_64_full_a} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| libubox.so | aarch64 | arm | mips | powerpc | x86_64 |" >> $GITHUB_STEP_SUMMARY
