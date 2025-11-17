@@ -1,3 +1,5 @@
+#!/bin/bash
+
 JSON_SCRIPT=tests.json
 JSON_SCRIPT_BIN=${TEST_JSON_SCRIPT=:-./json_script-example}
 FILE_STDOUT=tests.stdout
@@ -303,6 +305,151 @@ test_jshn_append_no_leading_space() {
 	_jshn_append var 'first'
 	_jshn_append var 'second'
 	assertEquals "first second" "$var"
+}
+
+test_jshn_dump() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	assertEquals '{ }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_string() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_string "name" "joe"
+
+	assertEquals '{ "name": "joe" }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_int() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_int "number" 1
+
+	assertEquals '{ "number": 1 }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_boolean() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_boolean "done" false
+
+	assertEquals '{ "done": false }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_double() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_double "power" 1.605
+
+	assertEquals '{ "power": 1.605 }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_null() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_null "reference"
+
+	assertEquals '{ "reference": null }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_object() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_object "inventory"
+
+	json_add_int "apples" 61
+	json_add_int "pears" 42
+	json_add_int "melons" 5
+
+	json_close_object # inventory
+
+	assertEquals '{ "inventory": { "apples": 61, "pears": 42, "melons": 5 } }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_array() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_array "interfaces"
+
+	json_add_string "" "eth0"
+	json_add_string "" "eth1"
+	json_add_string "" "eth2"
+
+	json_close_array # interfaces
+
+	assertEquals '{ "interfaces": [ "eth0", "eth1", "eth2" ] }' "$(json_dump)"
+
+	set -u
+}
+
+test_jshn_add_multi() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	set +u
+
+	json_init
+
+	json_add_fields "name:string=joe" "age:int=42" "veteran:boolean=false"
+
+	assertEquals '{ "name": "joe", "age": 42, "veteran": false }' "$(json_dump)"
+
+	set -u
 }
 
 . ./shunit2/shunit2
