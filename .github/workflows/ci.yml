@@ -5,6 +5,8 @@ on:
   pull_request:
 
 env:
+  archs: "aarch64 arm mips mips64 powerpc powerpc64 riscv64 x86_64"
+  variants: "basic full"
   LUA_VERSION: 5.1.5
 
 jobs:
@@ -24,9 +26,18 @@ jobs:
           - arch: mips
             gcc: /usr/bin/mips-linux-gnu-gcc
             packages: gcc-mips-linux-gnu
+          - arch: mips64
+            gcc: /usr/bin/mips64-linux-gnuabi64-gcc
+            packages: gcc-mips64-linux-gnuabi64
           - arch: powerpc
             gcc: /usr/bin/powerpc-linux-gnu-gcc
             packages: gcc-powerpc-linux-gnu
+          - arch: powerpc64
+            gcc: /usr/bin/powerpc64-linux-gnu-gcc
+            packages: gcc-powerpc64-linux-gnu
+          - arch: riscv64
+            gcc: /usr/bin/riscv64-linux-gnu-gcc
+            packages: gcc-riscv64-linux-gnu
           - arch: x86_64
             gcc: /usr/bin/x86_64-linux-gnu-gcc
             packages: gcc-x86-64-linux-gnu
@@ -43,10 +54,22 @@ jobs:
       size-mips-basic-so: ${{ steps.basic.outputs.size_mips_so }}
       size-mips-full-a: ${{ steps.full.outputs.size_mips_a }}
       size-mips-full-so: ${{ steps.full.outputs.size_mips_so }}
+      size-mips64-basic-a: ${{ steps.basic.outputs.size_mips64_a }}
+      size-mips64-basic-so: ${{ steps.basic.outputs.size_mips64_so }}
+      size-mips64-full-a: ${{ steps.full.outputs.size_mips64_a }}
+      size-mips64-full-so: ${{ steps.full.outputs.size_mips64_so }}
       size-powerpc-basic-a: ${{ steps.basic.outputs.size_powerpc_a }}
       size-powerpc-basic-so: ${{ steps.basic.outputs.size_powerpc_so }}
       size-powerpc-full-a: ${{ steps.full.outputs.size_powerpc_a }}
       size-powerpc-full-so: ${{ steps.full.outputs.size_powerpc_so }}
+      size-powerpc64-basic-a: ${{ steps.basic.outputs.size_powerpc64_a }}
+      size-powerpc64-basic-so: ${{ steps.basic.outputs.size_powerpc64_so }}
+      size-powerpc64-full-a: ${{ steps.full.outputs.size_powerpc64_a }}
+      size-powerpc64-full-so: ${{ steps.full.outputs.size_powerpc64_so }}
+      size-riscv64-basic-a: ${{ steps.basic.outputs.size_riscv64_a }}
+      size-riscv64-basic-so: ${{ steps.basic.outputs.size_riscv64_so }}
+      size-riscv64-full-a: ${{ steps.full.outputs.size_riscv64_a }}
+      size-riscv64-full-so: ${{ steps.full.outputs.size_riscv64_so }}
       size-x86_64-basic-a: ${{ steps.basic.outputs.size_x86_64_a }}
       size-x86_64-basic-so: ${{ steps.basic.outputs.size_x86_64_so }}
       size-x86_64-full-a: ${{ steps.full.outputs.size_x86_64_a }}
@@ -155,25 +178,66 @@ jobs:
           size_mips_basic_so: ${{needs.build.outputs.size-mips-basic-so}}
           size_mips_full_a: ${{needs.build.outputs.size-mips-full-a}}
           size_mips_full_so: ${{needs.build.outputs.size-mips-full-so}}
+          size_mips64_basic_a: ${{needs.build.outputs.size-mips64-basic-a}}
+          size_mips64_basic_so: ${{needs.build.outputs.size-mips64-basic-so}}
+          size_mips64_full_a: ${{needs.build.outputs.size-mips64-full-a}}
+          size_mips64_full_so: ${{needs.build.outputs.size-mips64-full-so}}
           size_powerpc_basic_a: ${{needs.build.outputs.size-powerpc-basic-a}}
           size_powerpc_basic_so: ${{needs.build.outputs.size-powerpc-basic-so}}
           size_powerpc_full_a: ${{needs.build.outputs.size-powerpc-full-a}}
           size_powerpc_full_so: ${{needs.build.outputs.size-powerpc-full-so}}
+          size_powerpc64_basic_a: ${{needs.build.outputs.size-powerpc64-basic-a}}
+          size_powerpc64_basic_so: ${{needs.build.outputs.size-powerpc64-basic-so}}
+          size_powerpc64_full_a: ${{needs.build.outputs.size-powerpc64-full-a}}
+          size_powerpc64_full_so: ${{needs.build.outputs.size-powerpc64-full-so}}
+          size_riscv64_basic_a: ${{needs.build.outputs.size-riscv64-basic-a}}
+          size_riscv64_basic_so: ${{needs.build.outputs.size-riscv64-basic-so}}
+          size_riscv64_full_a: ${{needs.build.outputs.size-riscv64-full-a}}
+          size_riscv64_full_so: ${{needs.build.outputs.size-riscv64-full-so}}
           size_x86_64_basic_a: ${{needs.build.outputs.size-x86_64-basic-a}}
           size_x86_64_basic_so: ${{needs.build.outputs.size-x86_64-basic-so}}
           size_x86_64_full_a: ${{needs.build.outputs.size-x86_64-full-a}}
           size_x86_64_full_so: ${{needs.build.outputs.size-x86_64-full-so}}
         run: |
           echo "### ${GITHUB_WORKFLOW} sizes :floppy_disk:" >> $GITHUB_STEP_SUMMARY
-          echo "| libubox.a | aarch64 | arm | mips | powerpc | x86_64 |" >> $GITHUB_STEP_SUMMARY
-          echo "| :---: | :---: | :---: | :---: | :---: | :---: |" >> $GITHUB_STEP_SUMMARY
-          echo "| basic | ${size_aarch64_basic_a} | ${size_arm_basic_a} | ${size_mips_basic_a} | ${size_powerpc_basic_a} | ${size_x86_64_basic_a} |" >> $GITHUB_STEP_SUMMARY
-          echo "| full | ${size_aarch64_full_a} | ${size_arm_full_a} | ${size_mips_full_a} | ${size_powerpc_full_a} | ${size_x86_64_full_a} |" >> $GITHUB_STEP_SUMMARY
+
+          header="| libubox.a |"
+          table="| :---: |"
+          for variant in ${{ env.variants }}; do
+            header="$header $variant |"
+            table="$table :---: |"
+          done
+          echo $header >> $GITHUB_STEP_SUMMARY
+          echo $table >> $GITHUB_STEP_SUMMARY
+
+          for arch in ${{ env.archs }}; do
+            row="| $arch | "
+            for variant in $variants; do
+              value=size_${arch}_$(echo "$variant" | tr "[:upper:]" "[:lower:]")_a
+              row="$row ${!value} |"
+            done
+            echo $row >> $GITHUB_STEP_SUMMARY
+          done
+
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "| libubox.so | aarch64 | arm | mips | powerpc | x86_64 |" >> $GITHUB_STEP_SUMMARY
-          echo "| :---: | :---: | :---: | :---: | :---: | :---: |" >> $GITHUB_STEP_SUMMARY
-          echo "| basic | ${size_aarch64_basic_so} | ${size_arm_basic_so} | ${size_mips_basic_so} | ${size_powerpc_basic_so} | ${size_x86_64_basic_so} |" >> $GITHUB_STEP_SUMMARY
-          echo "| full | ${size_aarch64_full_so} | ${size_arm_full_so} | ${size_mips_full_so} | ${size_powerpc_full_so} | ${size_x86_64_full_so} |" >> $GITHUB_STEP_SUMMARY
+
+          header="| libubox.so |"
+          table="| :---: |"
+          for variant in ${{ env.variants }}; do
+            header="$header $variant |"
+            table="$table :---: |"
+          done
+          echo $header >> $GITHUB_STEP_SUMMARY
+          echo $table >> $GITHUB_STEP_SUMMARY
+
+          for arch in ${{ env.archs }}; do
+            row="| $arch | "
+            for variant in $variants; do
+              value=size_${arch}_$(echo "$variant" | tr "[:upper:]" "[:lower:]")_so
+              row="$row ${!value} |"
+            done
+            echo $row >> $GITHUB_STEP_SUMMARY
+          done
 
   tests:
     name: Tests
