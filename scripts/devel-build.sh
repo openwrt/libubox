@@ -62,6 +62,7 @@ cmake							\
 	-S .						\
 	-B "${BUILDDIR}"				\
 	-DCMAKE_PREFIX_PATH="${BUILDDIR}"		\
+	-DLUAPATH=${BUILDDIR}/lib/lua			\
 	--install-prefix "${BUILDDIR}"			\
 	${BUILD_ARGS}
 make -C "${BUILDDIR}"
