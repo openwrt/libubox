@@ -18,7 +18,7 @@ INCLUDE(FindPkgConfig)
 PKG_SEARCH_MODULE(JSONC json-c REQUIRED)
 INCLUDE_DIRECTORIES(${JSONC_INCLUDE_DIRS})
 
-SET(SOURCES avl.c avl-cmp.c blob.c blobmsg.c uloop.c usock.c ustream.c ustream-fd.c vlist.c utils.c safe_list.c runqueue.c md5.c kvlist.c ulog.c base64.c udebug.c udebug-remote.c)
+SET(SOURCES avl.c avl-cmp.c blob.c blobmsg.c uloop.c usock.c ustream.c ustream-fd.c vlist.c utils.c safe_list.c runqueue.c md5.c network.c kvlist.c ulog.c base64.c udebug.c udebug-remote.c)
 
 ADD_LIBRARY(ubox SHARED ${SOURCES})
 ADD_LIBRARY(ubox-static STATIC ${SOURCES})
