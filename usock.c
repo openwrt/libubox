@@ -131,6 +131,17 @@ static int poll_restart(struct pollfd *fds, int nfds, int timeout)
 	}
 }
 
+static int usock_check_connect(int fd)
+{
+	int err = 0;
+	socklen_t len = sizeof(err);
+
+	if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len))
+		return -1;
+
+	return err ? -1 : 0;
+}
+
 int usock_inet_timeout(int type, const char *host, const char *service,
 		       void *addr, int timeout)
 {
@@ -184,9 +195,15 @@ int usock_inet_timeout(int type, const char *host, const char *service,
 
 		if (timeout > 300) {
 			if (poll_restart(pfds, 1, 300) == 1) {
-				rp = rp_v6;
-				sock = pfds[0].fd;
-				goto out;
+				if (usock_check_connect(pfds[0].fd) == 0) {
+					rp = rp_v6;
+					sock = pfds[0].fd;
+					goto out;
+				}
+				close(pfds[0].fd);
+				pfds[0].fd = -1;
+				rp_v6 = NULL;
+				goto try_v4;
 			}
 		}
 		timeout -= 300;
@@ -208,13 +225,15 @@ try_v4:
 
 wait:
 	poll_restart(pfds + !rp_v6, !!rp_v6 + !!rp_v4, timeout);
-	if (pfds[0].revents & POLLOUT) {
+	if ((pfds[0].revents & POLLOUT) &&
+	    usock_check_connect(pfds[0].fd) == 0) {
 		rp = rp_v6;
 		sock = pfds[0].fd;
 		goto out;
 	}
 
-	if (pfds[1].revents & POLLOUT) {
+	if ((pfds[1].revents & POLLOUT) &&
+	    usock_check_connect(pfds[1].fd) == 0) {
 		rp = rp_v4;
 		sock = pfds[1].fd;
 		goto out;
