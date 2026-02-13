@@ -142,6 +142,18 @@ static int usock_check_connect(int fd)
 	return err ? -1 : 0;
 }
 
+static int usock_timeout_remaining(struct timespec *deadline)
+{
+	struct timespec cur;
+	int msec;
+
+	clock_gettime(CLOCK_MONOTONIC, &cur);
+	msec = (deadline->tv_sec - cur.tv_sec) * 1000;
+	msec += (deadline->tv_nsec - cur.tv_nsec) / 1000000;
+
+	return msec > 0 ? msec : 0;
+}
+
 int usock_inet_timeout(int type, const char *host, const char *service,
 		       void *addr, int timeout)
 {
@@ -162,8 +174,9 @@ int usock_inet_timeout(int type, const char *host, const char *service,
 	    { .fd = -1, .events = POLLOUT },
 	    { .fd = -1, .events = POLLOUT },
 	};
+	struct timespec deadline;
 	int sock = -1;
-	int i;
+	int delay, i;
 
 	if (getaddrinfo(host, service, &hints, &result))
 		return -1;
@@ -172,6 +185,14 @@ int usock_inet_timeout(int type, const char *host, const char *service,
 		sock = usock_inet_notimeout(type, result, addr);
 		goto free_addrinfo;
 	}
+
+	clock_gettime(CLOCK_MONOTONIC, &deadline);
+	deadline.tv_nsec += (timeout % 1000) * 1000000;
+	if (deadline.tv_nsec >= 1000000000) {
+		deadline.tv_sec++;
+		deadline.tv_nsec -= 1000000000;
+	}
+	deadline.tv_sec += timeout / 1000;
 
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
 		if (rp->ai_family == AF_INET6 && !rp_v6)
@@ -193,20 +214,20 @@ int usock_inet_timeout(int type, const char *host, const char *service,
 			goto try_v4;
 		}
 
-		if (timeout > 300) {
-			if (poll_restart(pfds, 1, 300) == 1) {
-				if (usock_check_connect(pfds[0].fd) == 0) {
-					rp = rp_v6;
-					sock = pfds[0].fd;
-					goto out;
-				}
-				close(pfds[0].fd);
-				pfds[0].fd = -1;
-				rp_v6 = NULL;
-				goto try_v4;
+		delay = usock_timeout_remaining(&deadline);
+		if (delay > 300)
+			delay = 300;
+		if (delay > 0 && poll_restart(pfds, 1, delay) == 1) {
+			if (usock_check_connect(pfds[0].fd) == 0) {
+				rp = rp_v6;
+				sock = pfds[0].fd;
+				goto out;
 			}
+			close(pfds[0].fd);
+			pfds[0].fd = -1;
+			rp_v6 = NULL;
+			goto try_v4;
 		}
-		timeout -= 300;
 	}
 
 try_v4:
@@ -224,7 +245,8 @@ try_v4:
 	}
 
 wait:
-	poll_restart(pfds + !rp_v6, !!rp_v6 + !!rp_v4, timeout);
+	poll_restart(pfds + !rp_v6, !!rp_v6 + !!rp_v4,
+		     usock_timeout_remaining(&deadline));
 	if ((pfds[0].revents & POLLOUT) &&
 	    usock_check_connect(pfds[0].fd) == 0) {
 		rp = rp_v6;
