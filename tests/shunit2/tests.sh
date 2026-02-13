@@ -535,4 +535,124 @@ test_jshn_get_index() {
 	set -u
 }
 
+test_jshn_get_root_position() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	# __SHUNIT_SHELL_FLAGS='u' results in 'line 6: JSON_UNSET: unbound variable' in json_cleanup()
+	set +u
+
+	local root
+
+	# Test getting the root position
+	json_init
+	json_add_object "obj"
+	json_add_array "arr"
+	json_get_root_position root
+	assertEquals "J_V" "$root"
+
+	set -u
+}
+
+test_jshn_get_parent_position() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	# __SHUNIT_SHELL_FLAGS='u' results in 'line 6: JSON_UNSET: unbound variable' in json_cleanup()
+	set +u
+
+	local cur
+
+	json_init
+
+	json_add_object "obj"
+	json_add_array "arr"
+
+	local obj="$cur"
+
+	json_get_parent_position cur
+	assertEquals "J_T1" "$cur"
+
+	set -u
+}
+
+test_jshn_get_position() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	# __SHUNIT_SHELL_FLAGS='u' results in 'line 6: JSON_UNSET: unbound variable' in json_cleanup()
+	set +u
+
+	local cur
+
+	# Test getting the root position
+	json_init
+	json_get_position cur
+	assertEquals "J_V" "$cur"
+
+	local root="$cur"
+
+	# ... and the object position
+	json_add_object "obj"
+	json_get_position cur
+	assertEquals "J_T1" "$cur"
+
+	local obj="$cur"
+
+	# ... and the array position
+	json_add_array "arr"
+	json_get_position cur
+	assertEquals "J_A2" "$cur"
+
+	local arr="$cur"
+
+	# ... still within the array
+	json_add_string "first" "one"
+	json_get_position cur
+	assertEquals "J_A2" "$cur"
+
+	# ... still within the array
+	json_add_string "second" "two"
+	json_get_position cur
+	assertEquals "J_A2" "$cur"
+
+	# ... now back to the object
+	json_select ..
+	json_get_position cur
+	assertEquals "$obj" "$cur"
+
+	# ... and at the root
+	json_select ..
+	json_get_position cur
+	assertEquals "$root" "$cur"
+
+	set -u
+}
+
+test_jshn_move_to() {
+	JSON_PREFIX="${JSON_PREFIX:-}"
+	. ../../sh/jshn.sh
+
+	# __SHUNIT_SHELL_FLAGS='u' results in 'line 6: JSON_UNSET: unbound variable' in json_cleanup()
+	set +u
+
+	local cur cur2
+
+	json_init
+	json_add_object "obj"
+	json_get_position cur
+
+	json_add_array "arr"
+	json_add_string "first" "one"
+	json_add_string "second" "two"
+
+	json_move_to "$cur"
+
+	json_get_position cur2
+
+	assertEquals "J_T1" "$cur2"
+
+	set -u
+}
+
 . ./shunit2/shunit2
