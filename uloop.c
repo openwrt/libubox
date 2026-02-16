@@ -238,7 +238,7 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 	unsigned int fl;
 	int ret;
 
-	if (!(flags & (ULOOP_READ | ULOOP_WRITE)))
+	if (!(flags & (ULOOP_READ | ULOOP_WRITE | ULOOP_PRIORITY)))
 		return uloop_fd_delete(sock);
 
 	if (!sock->registered && !(flags & ULOOP_BLOCKING)) {

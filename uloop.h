@@ -49,8 +49,6 @@ typedef void (*uloop_signal_handler)(struct uloop_signal *s);
 #define ULOOP_EDGE_TRIGGER	(1 << 2)
 #define ULOOP_BLOCKING		(1 << 3)
 
-#define ULOOP_EVENT_MASK	(ULOOP_READ | ULOOP_WRITE)
-
 /* internal flags */
 #define ULOOP_EVENT_BUFFERED	(1 << 4)
 #ifdef USE_KQUEUE
@@ -58,6 +56,9 @@ typedef void (*uloop_signal_handler)(struct uloop_signal *s);
 #endif
 
 #define ULOOP_ERROR_CB		(1 << 6)
+#define ULOOP_PRIORITY		(1 << 7)
+
+#define ULOOP_EVENT_MASK	(ULOOP_READ | ULOOP_WRITE | ULOOP_PRIORITY)
 
 struct uloop_fd
 {
