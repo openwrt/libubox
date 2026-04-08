@@ -27,7 +27,9 @@
 #include <errno.h>
 #include <string.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "usock.h"
 #include "utils.h"
@@ -113,6 +115,7 @@ usock_inet_notimeout(int type, struct addrinfo *result, void *addr)
 static int poll_restart(struct pollfd *fds, int nfds, int timeout)
 {
 	struct timespec ts, cur;
+	int64_t remaining;
 	int msec = timeout % 1000;
 	int ret;
 
@@ -131,10 +134,11 @@ static int poll_restart(struct pollfd *fds, int nfds, int timeout)
 			return ret;
 
 		clock_gettime(CLOCK_MONOTONIC, &cur);
-		timeout = (ts.tv_sec - cur.tv_sec) * 1000;
-		timeout += (ts.tv_nsec - cur.tv_nsec) / 1000000;
-		if (timeout <= 0)
+		remaining = ((int64_t)ts.tv_sec - (int64_t)cur.tv_sec) * 1000;
+		remaining += (ts.tv_nsec - cur.tv_nsec) / 1000000;
+		if (remaining <= 0)
 			return 0;
+		timeout = remaining > INT_MAX ? INT_MAX : (int)remaining;
 	}
 }
 
@@ -152,13 +156,16 @@ static int usock_check_connect(int fd)
 static int usock_timeout_remaining(struct timespec *deadline)
 {
 	struct timespec cur;
-	int msec;
+	int64_t msec;
 
 	clock_gettime(CLOCK_MONOTONIC, &cur);
-	msec = (deadline->tv_sec - cur.tv_sec) * 1000;
+	msec = ((int64_t)deadline->tv_sec - (int64_t)cur.tv_sec) * 1000;
 	msec += (deadline->tv_nsec - cur.tv_nsec) / 1000000;
 
-	return msec > 0 ? msec : 0;
+	if (msec > INT_MAX)
+		return INT_MAX;
+
+	return msec > 0 ? (int)msec : 0;
 }
 
 #define USOCK_MAX_CANDIDATES 8
