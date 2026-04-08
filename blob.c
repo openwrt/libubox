@@ -21,7 +21,7 @@
 static bool
 blob_buffer_grow(struct blob_buf *buf, int minlen)
 {
-	struct blob_buf *new;
+	void *new;
 	int delta = ((minlen / 256) + 1) * 256;
 	new = realloc(buf->buf, buf->buflen + delta);
 	if (new) {
