@@ -121,8 +121,15 @@ static struct uloop_fd waker_fd = {
 
 static void waker_init_fd(int fd)
 {
-	fcntl(fd, F_SETFD, fcntl(fd, F_GETFD) | FD_CLOEXEC);
-	fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+	int flags;
+
+	flags = fcntl(fd, F_GETFD);
+	if (flags >= 0)
+		fcntl(fd, F_SETFD, flags | FD_CLOEXEC);
+
+	flags = fcntl(fd, F_GETFL);
+	if (flags >= 0)
+		fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
 static int waker_init(void)
@@ -235,7 +242,7 @@ static void uloop_run_events(int64_t timeout)
 
 int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 {
-	unsigned int fl;
+	int fl;
 	int ret;
 
 	if (!(flags & (ULOOP_READ | ULOOP_WRITE)))
@@ -243,8 +250,8 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags)
 
 	if (!sock->registered && !(flags & ULOOP_BLOCKING)) {
 		fl = fcntl(sock->fd, F_GETFL, 0);
-		fl |= O_NONBLOCK;
-		fcntl(sock->fd, F_SETFL, fl);
+		if (fl >= 0)
+			fcntl(sock->fd, F_SETFL, fl | O_NONBLOCK);
 	}
 
 	ret = register_poll(sock, flags);

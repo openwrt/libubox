@@ -28,18 +28,25 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <poll.h>
 
 #include "usock.h"
 #include "utils.h"
 
 static void usock_set_flags(int sock, unsigned int type)
 {
-	if (!(type & USOCK_NOCLOEXEC))
-		fcntl(sock, F_SETFD, fcntl(sock, F_GETFD) | FD_CLOEXEC);
+	int flags;
 
-	if (type & USOCK_NONBLOCK)
-		fcntl(sock, F_SETFL, fcntl(sock, F_GETFL) | O_NONBLOCK);
+	if (!(type & USOCK_NOCLOEXEC)) {
+		flags = fcntl(sock, F_GETFD);
+		if (flags >= 0)
+			fcntl(sock, F_SETFD, flags | FD_CLOEXEC);
+	}
+
+	if (type & USOCK_NONBLOCK) {
+		flags = fcntl(sock, F_GETFL);
+		if (flags >= 0)
+			fcntl(sock, F_SETFL, flags | O_NONBLOCK);
+	}
 }
 
 static int usock_connect(int type, struct sockaddr *sa, int sa_len, int family, int socktype, bool server)
@@ -202,6 +209,7 @@ int usock_inet_timeout(int type, const char *host, const char *service,
 	int n_candidates, n_active = 0;
 	int sock = -1;
 	int fd, delay, i, j;
+	int flags;
 
 	if (getaddrinfo(host, service, &hints, &result))
 		return -1;
@@ -292,8 +300,11 @@ out:
 	}
 
 	if (sock >= 0) {
-		if (!(type & USOCK_NONBLOCK))
-			fcntl(sock, F_SETFL, fcntl(sock, F_GETFL) & ~O_NONBLOCK);
+		if (!(type & USOCK_NONBLOCK)) {
+			flags = fcntl(sock, F_GETFL);
+			if (flags >= 0)
+				fcntl(sock, F_SETFL, flags & ~O_NONBLOCK);
+		}
 		if (addr)
 			memcpy(addr, rp->ai_addr, rp->ai_addrlen);
 	}
