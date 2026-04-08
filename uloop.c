@@ -61,9 +61,9 @@ static struct list_head processes = LIST_HEAD_INIT(processes);
 static struct list_head signals = LIST_HEAD_INIT(signals);
 
 static int poll_fd = -1;
-bool uloop_cancelled = false;
+volatile sig_atomic_t uloop_cancelled = 0;
 bool uloop_handle_sigchld = true;
-static int uloop_status = 0;
+static volatile sig_atomic_t uloop_status = 0;
 static volatile sig_atomic_t do_sigchld = 0;
 
 static struct uloop_fd_event cur_fds[ULOOP_MAX_EVENTS];
@@ -670,7 +670,7 @@ int uloop_run_timeout(int timeout)
 	uloop_run_depth++;
 
 	uloop_status = 0;
-	uloop_cancelled = false;
+	uloop_cancelled = 0;
 	do {
 		uloop_process_timeouts();
 
