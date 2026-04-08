@@ -639,13 +639,11 @@ static void __json_script_file_free(struct json_script_file *f)
 {
 	struct json_script_file *next;
 
-	if (!f)
-		return;
-
-	next = f->next;
-	free(f);
-
-	__json_script_file_free(next);
+	while (f) {
+		next = f->next;
+		free(f);
+		f = next;
+	}
 }
 
 void
