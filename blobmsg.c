@@ -163,18 +163,30 @@ int blobmsg_parse_array(const struct blobmsg_policy *policy, int policy_len,
 	return 0;
 }
 
+/*
+ * Upper bound on the number of policy entries blobmsg_parse() will
+ * accept. The pslen scratch array is allocated on the stack via
+ * alloca(); 4096 entries cap the per-call stack use at
+ * 4096 * sizeof(uint16_t) = 8 KiB, which comfortably fits the typical
+ * 8 KiB thread default while being far above any realistic policy
+ * size used in practice (a few dozen entries).
+ */
+#define BLOBMSG_PARSE_MAX_POLICY 4096
+
 int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
                   struct blob_attr **tb, void *data, unsigned int len)
 {
 	const struct blobmsg_hdr *hdr;
 	struct blob_attr *attr;
-	uint8_t *pslen;
+	uint16_t *pslen;
 	int i;
 
 	memset(tb, 0, policy_len * sizeof(*tb));
 	if (!data || !len)
 		return -EINVAL;
-	pslen = alloca(policy_len);
+	if (policy_len < 0 || policy_len > BLOBMSG_PARSE_MAX_POLICY)
+		return -ENOMEM;
+	pslen = alloca(policy_len * sizeof(*pslen));
 	for (i = 0; i < policy_len; i++) {
 		if (!policy[i].name)
 			continue;
