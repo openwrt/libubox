@@ -85,12 +85,12 @@ int uloop_fd_add(struct uloop_fd *sock, unsigned int flags);
 static void set_signo(uint64_t *signums, int signo)
 {
 	if (signo >= 1 && signo <= 64)
-		*signums |= (1u << (signo - 1));
+		*signums |= (UINT64_C(1) << (signo - 1));
 }
 
 static bool get_signo(uint64_t signums, int signo)
 {
-	return (signo >= 1) && (signo <= 64) && (signums & (1u << (signo - 1)));
+	return (signo >= 1) && (signo <= 64) && (signums & (UINT64_C(1) << (signo - 1)));
 }
 
 static void signal_consume(struct uloop_fd *fd, unsigned int events)
