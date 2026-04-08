@@ -112,7 +112,7 @@ static int poll_restart(struct pollfd *fds, int nfds, int timeout)
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 
 	ts.tv_nsec += msec * 1000000;
-	if (ts.tv_nsec > 1000000000) {
+	if (ts.tv_nsec >= 1000000000) {
 		ts.tv_sec++;
 		ts.tv_nsec -= 1000000000;
 	}
