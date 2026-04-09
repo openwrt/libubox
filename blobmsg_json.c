@@ -112,8 +112,8 @@ bool blobmsg_add_json_from_string(struct blob_buf *b, const char *str)
 
 
 struct strbuf {
-	int len;
-	int pos;
+	size_t len;
+	size_t pos;
 	char *buf;
 
 	blobmsg_json_format_t custom_format;
@@ -122,15 +122,15 @@ struct strbuf {
 	int indent_level;
 };
 
-static bool blobmsg_puts(struct strbuf *s, const char *c, int len)
+static bool blobmsg_puts(struct strbuf *s, const char *c, size_t len)
 {
 	size_t new_len;
 	char *new_buf;
 
-	if (len <= 0)
+	if (!len)
 		return true;
 
-	if (s->pos + len >= s->len) {
+	if (s->len - s->pos <= len) {
 		new_len = s->len + 16 + len;
 		new_buf = realloc(s->buf, new_len);
 		if (!new_buf)
@@ -170,7 +170,7 @@ static void blobmsg_format_string(struct strbuf *s, const char *str)
 	blobmsg_puts(s, "\"", 1);
 	for (p = (unsigned char *) str, last = p; *p; p++) {
 		char escape = '\0';
-		int len;
+		size_t len;
 
 		switch(*p) {
 		case '\b':
