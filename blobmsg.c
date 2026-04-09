@@ -340,6 +340,8 @@ blobmsg_alloc_string_buffer(struct blob_buf *buf, const char *name, unsigned int
 	struct blob_attr *attr;
 	void *data_dest;
 
+	if (maxlen == (unsigned int)-1)
+		return NULL;
 	maxlen++;
 	attr = blobmsg_new(buf, BLOBMSG_TYPE_STRING, name, maxlen, &data_dest);
 	if (!attr)
