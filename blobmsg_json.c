@@ -272,7 +272,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 		snprintf(buf, sizeof(buf), "%" PRId64, (int64_t) be64_to_cpu(*(uint64_t *)data));
 		break;
 	case BLOBMSG_TYPE_DOUBLE:
-		snprintf(buf, sizeof(buf), "%lf", blobmsg_get_double(attr));
+		snprintf(buf, sizeof(buf), "%.17g", blobmsg_get_double(attr));
 		break;
 	case BLOBMSG_TYPE_STRING:
 		blobmsg_format_string(s, data);
