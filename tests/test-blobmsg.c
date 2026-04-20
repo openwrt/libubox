@@ -55,6 +55,9 @@ static void dump_attr_data(struct blob_attr *data, int indent, int next_indent)
 	case BLOBMSG_TYPE_DOUBLE:
 		indent_printf(indent, "%lf (dbl)\n", blobmsg_get_double(data));
 		break;
+	case BLOBMSG_TYPE_BOOL:
+		indent_printf(indent, "%s (bool)\n", blobmsg_get_bool(data) ? "true" : "false");
+		break;
 	case BLOBMSG_TYPE_TABLE:
 	case BLOBMSG_TYPE_ARRAY:
 		if (!indent)
@@ -132,6 +135,8 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_u64(buf, "taz-min", INT64_MIN);
 	blobmsg_add_u64(buf, "taz-max", INT64_MAX);
 	blobmsg_add_string(buf, "world", "2");
+	blobmsg_add_bool(buf, "flag-true", true);
+	blobmsg_add_bool(buf, "flag-false", false);
 	blobmsg_close_table(buf, tbl);
 
 	tbl = blobmsg_open_array(buf, "list");
@@ -147,6 +152,8 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_u64(buf, NULL, INT64_MAX);
 	blobmsg_add_double(buf, NULL, DBL_MIN);
 	blobmsg_add_double(buf, NULL, DBL_MAX);
+	blobmsg_add_bool(buf, NULL, true);
+	blobmsg_add_bool(buf, NULL, false);
 	blobmsg_close_table(buf, tbl);
 }
 
