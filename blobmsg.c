@@ -13,6 +13,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <limits.h>
+
 #include "blobmsg.h"
 
 static const int blob_type[__BLOBMSG_TYPE_LAST] = {
@@ -358,10 +360,18 @@ blobmsg_realloc_string_buffer(struct blob_buf *buf, unsigned int maxlen)
 {
 	struct blob_attr *attr = blob_next(buf->head);
 	int offset = attr_to_offset(buf, blob_next(buf->head)) + blob_pad_len(attr) - BLOB_COOKIE;
-	int required = maxlen + 1 - (buf->buflen - offset);
+	int required;
 
-	if (required <= 0)
+	if (maxlen >= INT_MAX)
+		return NULL;
+
+	if (buf->buflen < 0 || offset < 0 || offset > buf->buflen)
+		return NULL;
+
+	if ((int)maxlen + 1 <= buf->buflen - offset)
 		goto out;
+
+	required = (int)maxlen + 1 - (buf->buflen - offset);
 
 	if (!blob_buf_grow(buf, required))
 		return NULL;
