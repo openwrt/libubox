@@ -426,17 +426,24 @@ static int json_process_expr(struct json_call *call, struct blob_attr *cur)
 
 static int eval_string(struct json_call *call, struct blob_buf *buf, const char *name, const char *pattern)
 {
-	char *dest, *next, *str;
+	char *dest, *next, *str, *buffer;
+	size_t pattern_len;
 	int len = 0;
 	bool var = false;
 	char c = '%';
 
-	dest = blobmsg_alloc_string_buffer(buf, name, 0);
-	if (!dest)
+	pattern_len = strlen(pattern);
+	buffer = malloc(pattern_len + 1);
+	if (!buffer)
 		return -1;
+	memcpy(buffer, pattern, pattern_len + 1);
+	next = buffer;
 
-	next = alloca(strlen(pattern) + 1);
-	strcpy(next, pattern);
+	dest = blobmsg_alloc_string_buffer(buf, name, 0);
+	if (!dest) {
+		free(buffer);
+		return -1;
+	}
 
 	for (str = next; str; str = next) {
 		const char *cur;
@@ -487,6 +494,7 @@ static int eval_string(struct json_call *call, struct blob_buf *buf, const char 
 
 	dest[len] = 0;
 	blobmsg_add_string_buffer(buf);
+	free(buffer);
 
 	if (var)
 		return -1;
