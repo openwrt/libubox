@@ -338,7 +338,7 @@ struct blob_attr *
 blob_memdup(const struct blob_attr *attr)
 {
 	struct blob_attr *ret;
-	int size = blob_pad_len(attr);
+	size_t size = blob_pad_len(attr);
 
 	ret = malloc(size);
 	if (!ret)
