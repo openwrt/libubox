@@ -125,8 +125,8 @@ void
 blob_fill_pad(struct blob_attr *attr)
 {
 	char *buf = (char *) attr;
-	int len = blob_pad_len(attr);
-	int delta = len - blob_raw_len(attr);
+	size_t len = blob_pad_len(attr);
+	size_t delta = len - blob_raw_len(attr);
 
 	if (delta > 0)
 		memset(buf + len - delta, 0, delta);

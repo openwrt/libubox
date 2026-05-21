@@ -595,7 +595,7 @@ void udebug_entry_set_length(struct udebug_buf *buf, uint16_t len)
 int udebug_entry_printf(struct udebug_buf *buf, const char *fmt, ...)
 {
 	va_list ap;
-	size_t ret;
+	int ret;
 
 	va_start(ap, fmt);
 	ret = udebug_entry_vprintf(buf, fmt, ap);

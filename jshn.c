@@ -58,12 +58,12 @@ static int add_json_object(json_object *obj)
 
 static int add_json_array(struct array_list *a)
 {
-	char seq[12];
-	int i, len;
+	char seq[21];
+	size_t i, len;
 	int ret;
 
 	for (i = 0, len = array_list_length(a); i < len; i++) {
-		snprintf(seq, sizeof(seq), "%d", i);
+		snprintf(seq, sizeof(seq), "%zu", i);
 		ret = add_json_element(seq, array_list_get_idx(a, i));
 		if (ret)
 			return ret;

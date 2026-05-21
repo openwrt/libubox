@@ -30,7 +30,7 @@ bool blobmsg_add_object(struct blob_buf *b, json_object *obj)
 
 static bool blobmsg_add_array(struct blob_buf *b, struct array_list *a)
 {
-	int i, len;
+	size_t i, len;
 
 	for (i = 0, len = array_list_length(a); i < len; i++) {
 		if (!blobmsg_add_json_element(b, NULL, array_list_get_idx(a, i)))
@@ -228,14 +228,14 @@ static void blobmsg_format_string(struct strbuf *s, const char *str)
 	blobmsg_puts(s, "\"", 1);
 }
 
-static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, int len, bool array);
+static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, size_t len, bool array);
 
 static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, bool without_name, bool head)
 {
 	const char *data_str;
 	char buf[317];
 	void *data;
-	int len;
+	size_t len;
 
 	if (!blobmsg_check_attr(attr, false))
 		return;
@@ -289,7 +289,7 @@ out:
 	blobmsg_puts(s, data_str, strlen(data_str));
 }
 
-static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, int len, bool array)
+static void blobmsg_format_json_list(struct strbuf *s, struct blob_attr *attr, size_t len, bool array)
 {
 	struct blob_attr *pos;
 	bool first = true;
