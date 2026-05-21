@@ -39,7 +39,7 @@ json_script_file_from_blobmsg(const char *name, void *data, int len)
 {
 	struct json_script_file *f;
 	char *new_name;
-	int name_len = 0;
+	size_t name_len = 0;
 
 	if (name)
 		name_len = strlen(name) + 1;
