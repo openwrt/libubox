@@ -112,7 +112,7 @@ struct uloop_signal
 	int signo;
 };
 
-extern bool uloop_cancelled;
+extern volatile sig_atomic_t uloop_cancelled;
 extern bool uloop_handle_sigchld;
 extern uloop_fd_handler uloop_fd_set_cb;
 
@@ -140,7 +140,7 @@ bool uloop_cancelling(void);
 
 static inline void uloop_end(void)
 {
-	uloop_cancelled = true;
+	uloop_cancelled = 1;
 }
 
 int uloop_init(void);
