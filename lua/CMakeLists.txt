@@ -34,7 +34,7 @@ IF(BUILD_LUA)
 		OUTPUT_NAME uloop
 		PREFIX ""
 	)
-	TARGET_LINK_LIBRARIES(uloop_lua ubox)
+	TARGET_LINK_LIBRARIES(uloop_lua ubox lua)
 
 	INSTALL(TARGETS uloop_lua
 		LIBRARY DESTINATION ${LUAPATH}
