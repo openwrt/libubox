@@ -18,6 +18,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#define LUA_COMPAT_5_3 // for lua_strlen
+
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
@@ -53,6 +55,24 @@ struct lua_uloop_signal {
 
 static lua_State *state;
 
+#if !defined LUA_VERSION_NUM || LUA_VERSION_NUM==501
+/*
+** Adapted from Lua 5.2.0
+*/
+static void luaL_setfuncs (lua_State *L, const luaL_Reg *l, int nup) {
+	luaL_checkstack(L, nup+1, "too many upvalues");
+	for (; l->name != NULL; l++) {  /* fill the table with given functions */
+		int i;
+		lua_pushstring(L, l->name);
+		for (i = 0; i < nup; i++)  /* copy upvalues to the top */
+			lua_pushvalue(L, -(nup+1));
+		lua_pushcclosure(L, l->func, nup);  /* closure with those upvalues */
+		lua_settable(L, -(nup + 3));
+	}
+	lua_pop(L, nup);  /* remove upvalues */
+}
+#endif
+
 static void *
 ul_create_userdata(lua_State *L, size_t size, const luaL_Reg *reg, lua_CFunction gc)
 {
@@ -67,7 +87,7 @@ ul_create_userdata(lua_State *L, size_t size, const luaL_Reg *reg, lua_CFunction
 	lua_pushvalue(L, -1);
 	lua_setmetatable(L, -3);
 	lua_pushvalue(L, -2);
-	luaI_openlib(L, NULL, reg, 1);
+	luaL_setfuncs(L, reg, 1);
 	lua_pushvalue(L, -2);
 
 	return ret;
@@ -597,7 +617,7 @@ static int ul_end(lua_State *L)
 	return 1;
 }
 
-static luaL_reg uloop_func[] = {
+static luaL_Reg uloop_func[] = {
 	{"init", ul_init},
 	{"run", ul_run},
 	{"timer", ul_timer},
@@ -623,7 +643,7 @@ int luaopen_uloop(lua_State *L)
 	lua_createtable(L, 1, 0);
 	lua_setglobal(L, "__uloop_fds");
 
-	luaL_openlib(L, "uloop", uloop_func, 0);
+	luaL_setfuncs(L, uloop_func, 0);
 	lua_pushstring(L, "_VERSION");
 	lua_pushstring(L, "1.0");
 	lua_rawset(L, -3);
