@@ -211,7 +211,10 @@ int blobmsg_parse(const struct blobmsg_policy *policy, int policy_len,
 
 			if (policy[i].type != BLOBMSG_TYPE_UNSPEC &&
 			    policy[i].type != BLOBMSG_CAST_INT64 &&
-			    blob_id(attr) != policy[i].type)
+			    blob_id(attr) != policy[i].type &&
+			    // For backward compatibility, accept BLOBMSG_TYPE_INT8 when the policy expects the new BLOBMSG_TYPE_BOOL.
+			    !(policy[i].type == BLOBMSG_TYPE_BOOL &&
+			    blob_id(attr) == BLOBMSG_TYPE_INT8))
 				continue;
 
 			if (policy[i].type == BLOBMSG_CAST_INT64 &&
