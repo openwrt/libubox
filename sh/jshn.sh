@@ -56,7 +56,7 @@ _json_add_generic() {
 		_json_inc "S_$4" var && export -- "${JSON_PREFIX}S_$4"
 	else
 		var="${2//[^a-zA-Z0-9_]/_}"
-		[[ "$var" == "$2" ]] || export -- "${JSON_PREFIX}N_${4}_${var}=$2"
+		[ "$var" = "$2" ] || export -- "${JSON_PREFIX}N_${4}_${var}=$2"
 	fi
 
 	export -- \
@@ -304,11 +304,11 @@ json_pretty() {
 }
 
 json_load() {
-	eval "`jshn -r "$1"`"
+	eval "$(jshn -r "$1")"
 }
 
 json_load_file() {
-	eval "`jshn -R "$1"`"
+	eval "$(jshn -R "$1")"
 }
 
 json_dump() {
@@ -390,7 +390,7 @@ json_select() {
 		_json_set_var JSON_CUR "J_V"
 		return 0
 	}
-	[[ "$target" == ".." ]] && {
+	[ "$target" = ".." ] && {
 		_json_get_var cur JSON_CUR
 		_json_get_var cur "U_$cur"
 		_json_set_var JSON_CUR "$cur"
