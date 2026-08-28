@@ -9,7 +9,7 @@ _json_get_var() {
 _json_set_var() {
 	# var=$1
 	local ___val="$2"
-	eval "${JSON_PREFIX}$1=\"\$___val\""
+	eval "export -- ${JSON_PREFIX}$1=\"\$___val\""
 }
 
 __jshn_raw_append() {
@@ -23,7 +23,7 @@ __jshn_raw_append() {
 _jshn_append() {
 	# var=$1
 	local _a_value="$2"
-	eval "${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1}\${${JSON_PREFIX}$1:+ }\$_a_value\""
+	eval "export -- ${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1}\${${JSON_PREFIX}$1:+ }\$_a_value\""
 }
 
 _get_var() {
@@ -53,7 +53,7 @@ _json_add_generic() {
 
 	local var
 	if [ "${4%%[0-9]*}" = "J_A" ]; then
-		_json_inc "S_$4" var
+		_json_inc "S_$4" var && export -- "${JSON_PREFIX}S_$4"
 	else
 		var="${2//[^a-zA-Z0-9_]/_}"
 		[[ "$var" == "$2" ]] || export -- "${JSON_PREFIX}N_${4}_${var}=$2"
@@ -122,7 +122,7 @@ json_cleanup() {
 
 json_init() {
 	json_cleanup
-	export -n ${JSON_PREFIX}JSON_SEQ=0
+	export -- ${JSON_PREFIX}JSON_SEQ=0
 	export -- \
 		${JSON_PREFIX}JSON_CUR="J_V" \
 		${JSON_PREFIX}K_J_V=
@@ -269,13 +269,13 @@ json_get_index() {
 # functions read access to json variables
 
 json_compact() {
-	JSON_NONEWLINE=1
-	JSON_INDENT=
+	export JSON_NONEWLINE=1
+	export JSON_INDENT=
 }
 
 json_pretty() {
-	JSON_NONEWLINE=
-	JSON_INDENT=1
+	export JSON_NONEWLINE=
+	export JSON_INDENT=1
 }
 
 json_load() {
