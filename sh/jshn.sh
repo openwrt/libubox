@@ -394,6 +394,7 @@ json_select() {
 		_json_get_var cur JSON_CUR
 		_json_get_var cur "U_$cur"
 		_json_set_var JSON_CUR "$cur"
+		eval "[ -z \"\${${JSON_PREFIX}JSON_CUR}\" ]" && _json_set_var JSON_CUR "J_V"
 		return 0
 	}
 	json_get_type type "$target"
