@@ -122,8 +122,31 @@ json_cleanup() {
 		${JSON_PREFIX}JSON_UNSET
 }
 
+json_purge() {
+	local list p
+
+	unset JSON_PREFIX
+	_json_get_var list JSON_PREFIX_LIST
+	for p in $list ""; do
+		export JSON_PREFIX=$p
+		json_cleanup
+	done
+
+	unset JSON_PREFIX_LIST
+	unset JSON_PREFIX
+}
+
 json_init() {
 	json_cleanup
+
+	case "${JSON_PREFIX_LIST}" in
+		"${JSON_PREFIX}") ;;
+		"${JSON_PREFIX} "*) ;;
+		*" ${JSON_PREFIX}") ;;
+		*" ${JSON_PREFIX} "*) ;;
+		*) __jshn_raw_append JSON_PREFIX_LIST ${JSON_PREFIX} ;;
+	esac
+
 	export -- \
 		${JSON_PREFIX}JSON_SEQ=0 \
 		${JSON_PREFIX}JSON_CUR="J_V" \
