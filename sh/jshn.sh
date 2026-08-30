@@ -115,6 +115,8 @@ json_cleanup() {
 	done
 
 	unset \
+		JSON_NONEWLINE \
+		JSON_INDENT \
 		${JSON_PREFIX}JSON_SEQ \
 		${JSON_PREFIX}JSON_CUR \
 		${JSON_PREFIX}JSON_UNSET
