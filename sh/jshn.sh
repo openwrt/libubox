@@ -287,7 +287,7 @@ json_load_file() {
 }
 
 json_dump() {
-	jshn "$@" ${JSON_PREFIX:+-p "$JSON_PREFIX"} ${JSON_NONEWLINE:+-n} ${JSON_INDENT:+-i} -w
+	jshn ${JSON_PREFIX:+-p "$JSON_PREFIX"} ${JSON_NONEWLINE:+-n} ${JSON_INDENT:+-i} "$@" -w
 }
 
 json_get_type() {
