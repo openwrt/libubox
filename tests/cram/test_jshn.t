@@ -6,11 +6,11 @@ set jshn for convenience:
 check usage:
 
   $ jshn
-  Usage: jshn [-n] [-i] -r <message>|-R <file>|-o <file>|-p <prefix>|-w
+  Usage: jshn [-n] [-i] [-p prefix] -r <message>|-R <file>|-o <file>|-w
   [2]
 
   $ jshn-san
-  Usage: jshn-san [-n] [-i] -r <message>|-R <file>|-o <file>|-p <prefix>|-w
+  Usage: jshn-san [-n] [-i] [-p prefix] -r <message>|-R <file>|-o <file>|-w
   [2]
 
 test bad json:
