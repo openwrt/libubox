@@ -240,7 +240,7 @@ static void blobmsg_format_element(struct strbuf *s, struct blob_attr *attr, boo
 	if (!blobmsg_check_attr(attr, false))
 		return;
 
-	if (!without_name && blobmsg_name(attr)[0]) {
+	if (!without_name && blob_is_extended(attr) && blobmsg_name(attr)[0]) {
 		blobmsg_format_string(s, blobmsg_name(attr));
 		blobmsg_puts(s, ": ", s->indent ? 2 : 1);
 	}
