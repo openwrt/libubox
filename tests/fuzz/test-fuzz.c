@@ -26,6 +26,7 @@ static void fuzz_blobmsg_parse(const uint8_t *data, size_t size)
 		BLOBMSG_TYPE_INT32,
 		BLOBMSG_TYPE_INT16,
 		BLOBMSG_TYPE_INT8,
+		BLOBMSG_TYPE_BOOL,
 		BLOBMSG_TYPE_DOUBLE,
 		BLOBMSG_TYPE_TROUBLE,
 	};

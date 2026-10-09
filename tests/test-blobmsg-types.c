@@ -19,6 +19,8 @@ enum {
 	FOO_INT8_MIN,
 	FOO_DOUBLE_MAX,
 	FOO_DOUBLE_MIN,
+	FOO_BOOL_TRUE,
+	FOO_BOOL_FALSE,
 	__FOO_MAX
 };
 
@@ -67,6 +69,14 @@ static const struct blobmsg_policy pol[] = {
 		.name = "double_min",
 		.type = BLOBMSG_TYPE_DOUBLE,
 	},
+	[FOO_BOOL_TRUE] = {
+		.name = "bool_true",
+		.type = BLOBMSG_TYPE_BOOL,
+	},
+	[FOO_BOOL_FALSE] = {
+		.name = "bool_false",
+		.type = BLOBMSG_TYPE_BOOL,
+	},
 };
 
 static const struct blobmsg_policy pol_json[] = {
@@ -100,11 +110,11 @@ static const struct blobmsg_policy pol_json[] = {
 	},
 	[FOO_INT8_MAX] = {
 		.name = "int8_max",
-		.type = BLOBMSG_TYPE_INT8,
+		.type = BLOBMSG_TYPE_INT32,
 	},
 	[FOO_INT8_MIN] = {
 		.name = "int8_min",
-		.type = BLOBMSG_TYPE_INT8,
+		.type = BLOBMSG_TYPE_INT32,
 	},
 	[FOO_DOUBLE_MAX] = {
 		.name = "double_max",
@@ -113,6 +123,14 @@ static const struct blobmsg_policy pol_json[] = {
 	[FOO_DOUBLE_MIN] = {
 		.name = "double_min",
 		.type = BLOBMSG_TYPE_DOUBLE,
+	},
+	[FOO_BOOL_TRUE] = {
+		.name = "bool_true",
+		.type = BLOBMSG_TYPE_BOOL,
+	},
+	[FOO_BOOL_FALSE] = {
+		.name = "bool_false",
+		.type = BLOBMSG_TYPE_BOOL,
 	},
 };
 
@@ -150,6 +168,10 @@ static void dump_message(struct blob_buf *buf)
 		fprintf(stderr, "double_max: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MAX]));
 	if (tb[FOO_DOUBLE_MIN])
 		fprintf(stderr, "double_min: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MIN]));
+	if (tb[FOO_BOOL_TRUE])
+		fprintf(stderr, "bool_true: %s\n", blobmsg_get_bool(tb[FOO_BOOL_TRUE]) ? "true" : "false");
+	if (tb[FOO_BOOL_FALSE])
+		fprintf(stderr, "bool_false: %s\n", blobmsg_get_bool(tb[FOO_BOOL_FALSE]) ? "true" : "false");
 }
 
 static void dump_message_cast_u64(struct blob_buf *buf)
@@ -182,6 +204,10 @@ static void dump_message_cast_u64(struct blob_buf *buf)
 		fprintf(stderr, "double_max: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MAX]));
 	if (tb[FOO_DOUBLE_MIN])
 		fprintf(stderr, "double_min: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MIN]));
+	if (tb[FOO_BOOL_TRUE])
+		fprintf(stderr, "bool_true: %" PRIu64 "\n", blobmsg_cast_u64(tb[FOO_BOOL_TRUE]));
+	if (tb[FOO_BOOL_FALSE])
+		fprintf(stderr, "bool_false: %" PRIu64 "\n", blobmsg_cast_u64(tb[FOO_BOOL_FALSE]));
 }
 
 static void dump_message_cast_s64(struct blob_buf *buf)
@@ -214,6 +240,10 @@ static void dump_message_cast_s64(struct blob_buf *buf)
 		fprintf(stderr, "double_max: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MAX]));
 	if (tb[FOO_DOUBLE_MIN])
 		fprintf(stderr, "double_min: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MIN]));
+	if (tb[FOO_BOOL_TRUE])
+		fprintf(stderr, "bool_true: %" PRId64 "\n", blobmsg_cast_s64(tb[FOO_BOOL_TRUE]));
+	if (tb[FOO_BOOL_FALSE])
+		fprintf(stderr, "bool_false: %" PRId64 "\n", blobmsg_cast_s64(tb[FOO_BOOL_FALSE]));
 }
 
 static void dump_message_json(struct blob_buf *buf)
@@ -240,16 +270,20 @@ static void dump_message_json(struct blob_buf *buf)
 	/* u16 is unknown to json, retrieve as u32 */
 	if (tb[FOO_INT16_MIN])
 		fprintf(stderr, "int16_min: %" PRId32 "\n", blobmsg_get_u32(tb[FOO_INT16_MIN]));
-	/* u8 is converted to boolean (true: all values != 0/false: value 0) in json */
+	/* u8 is unknown to json, retrieve as u32 */
 	if (tb[FOO_INT8_MAX])
-		fprintf(stderr, "int8_max: %" PRId8 "\n", blobmsg_get_u8(tb[FOO_INT8_MAX]));
-	/* u8 is converted to boolean (true: all values != 0/false: value 0) in json */
+		fprintf(stderr, "int8_max: %" PRId32 "\n", blobmsg_get_u32(tb[FOO_INT8_MAX]));
+	/* u8 is unknown to json, retrieve as u32 */
 	if (tb[FOO_INT8_MIN])
-		fprintf(stderr, "int8_min: %" PRId8 "\n", blobmsg_get_u8(tb[FOO_INT8_MIN]));
+		fprintf(stderr, "int8_min: %" PRId32 "\n", blobmsg_get_u32(tb[FOO_INT8_MIN]));
 	if (tb[FOO_DOUBLE_MAX])
 		fprintf(stderr, "double_max: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MAX]));
 	if (tb[FOO_DOUBLE_MIN])
 		fprintf(stderr, "double_min: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MIN]));
+	if (tb[FOO_BOOL_TRUE])
+		fprintf(stderr, "bool_true: %s\n", blobmsg_get_bool(tb[FOO_BOOL_TRUE]) ? "true" : "false");
+	if (tb[FOO_BOOL_FALSE])
+		fprintf(stderr, "bool_false: %s\n", blobmsg_get_bool(tb[FOO_BOOL_FALSE]) ? "true" : "false");
 }
 
 static void dump_message_cast_u64_json(struct blob_buf *buf)
@@ -282,6 +316,10 @@ static void dump_message_cast_u64_json(struct blob_buf *buf)
 		fprintf(stderr, "double_max: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MAX]));
 	if (tb[FOO_DOUBLE_MIN])
 		fprintf(stderr, "double_min: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MIN]));
+	if (tb[FOO_BOOL_TRUE])
+		fprintf(stderr, "bool_true: %" PRIu64 "\n", blobmsg_cast_u64(tb[FOO_BOOL_TRUE]));
+	if (tb[FOO_BOOL_FALSE])
+		fprintf(stderr, "bool_false: %" PRIu64 "\n", blobmsg_cast_u64(tb[FOO_BOOL_FALSE]));
 }
 
 static void dump_message_cast_s64_json(struct blob_buf *buf)
@@ -314,6 +352,10 @@ static void dump_message_cast_s64_json(struct blob_buf *buf)
 		fprintf(stderr, "double_max: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MAX]));
 	if (tb[FOO_DOUBLE_MIN])
 		fprintf(stderr, "double_min: %e\n", blobmsg_get_double(tb[FOO_DOUBLE_MIN]));
+	if (tb[FOO_BOOL_TRUE])
+		fprintf(stderr, "bool_true: %" PRId64 "\n", blobmsg_cast_s64(tb[FOO_BOOL_TRUE]));
+	if (tb[FOO_BOOL_FALSE])
+		fprintf(stderr, "bool_false: %" PRId64 "\n", blobmsg_cast_s64(tb[FOO_BOOL_FALSE]));
 }
 
 static void
@@ -330,6 +372,8 @@ fill_message(struct blob_buf *buf)
 	blobmsg_add_u8(buf, "int8_min", INT8_MIN);
 	blobmsg_add_double(buf, "double_max", DBL_MAX);
 	blobmsg_add_double(buf, "double_min", DBL_MIN);
+	blobmsg_add_bool(buf, "bool_true", true);
+	blobmsg_add_bool(buf, "bool_false", false);
 }
 
 int main(int argc, char **argv)

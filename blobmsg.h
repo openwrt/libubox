@@ -31,7 +31,7 @@ enum blobmsg_type {
 	BLOBMSG_TYPE_INT32,
 	BLOBMSG_TYPE_INT16,
 	BLOBMSG_TYPE_INT8,
-	BLOBMSG_TYPE_BOOL = BLOBMSG_TYPE_INT8,
+	BLOBMSG_TYPE_BOOL,
 	BLOBMSG_TYPE_DOUBLE,
 	__BLOBMSG_TYPE_LAST,
 	BLOBMSG_TYPE_LAST = __BLOBMSG_TYPE_LAST - 1,
@@ -232,6 +232,13 @@ blobmsg_add_u64(struct blob_buf *buf, const char *name, uint64_t val)
 }
 
 static inline int
+blobmsg_add_bool(struct blob_buf *buf, const char *name, bool val)
+{
+	uint8_t v = val ? 1 : 0;
+	return blobmsg_add_field(buf, BLOBMSG_TYPE_BOOL, name, &v, 1);
+}
+
+static inline int
 blobmsg_add_string(struct blob_buf *buf, const char *name, const char *string)
 {
 	return blobmsg_add_field(buf, BLOBMSG_TYPE_STRING, name, string, strlen(string) + 1);
@@ -319,6 +326,7 @@ static inline uint64_t blobmsg_cast_u64(struct blob_attr *attr)
 		tmp = blobmsg_get_u16(attr);
 		break;
 	case BLOBMSG_TYPE_INT8:
+	case BLOBMSG_TYPE_BOOL:
 		tmp = blobmsg_get_u8(attr);
 		break;
 	default:
@@ -345,6 +353,7 @@ static inline int64_t blobmsg_cast_s64(struct blob_attr *attr)
 		tmp = (int16_t) blobmsg_get_u16(attr);
 		break;
 	case BLOBMSG_TYPE_INT8:
+	case BLOBMSG_TYPE_BOOL:
 		tmp = (int8_t) blobmsg_get_u8(attr);
 		break;
 	default:
