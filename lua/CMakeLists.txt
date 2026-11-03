@@ -36,6 +36,13 @@ IF(BUILD_LUA)
 	)
 	TARGET_LINK_LIBRARIES(uloop_lua ubox)
 
+	# Only link against a shared liblua. Linking the static liblua.a would
+	# copy the whole Lua VM into the module.
+	FIND_LIBRARY(LUA_SHARED_LIBRARY NAMES liblua${CMAKE_SHARED_LIBRARY_SUFFIX})
+	IF(LUA_SHARED_LIBRARY)
+		TARGET_LINK_LIBRARIES(uloop_lua ${LUA_SHARED_LIBRARY})
+	ENDIF()
+
 	INSTALL(TARGETS uloop_lua
 		LIBRARY DESTINATION ${LUAPATH}
 	)
