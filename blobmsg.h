@@ -70,7 +70,7 @@ static inline int blobmsg_type(const struct blob_attr *attr)
 	return blob_id(attr);
 }
 
-static uint16_t blobmsg_namelen(const struct blobmsg_hdr *hdr)
+static inline uint16_t blobmsg_namelen(const struct blobmsg_hdr *hdr)
 {
 	return be16_to_cpu(hdr->namelen);
 }
