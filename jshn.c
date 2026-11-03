@@ -34,6 +34,7 @@
 static struct avl_tree env_vars;
 static struct blob_buf b = { 0 };
 
+static const char *opt = "";
 static const char *var_prefix = "";
 static int var_prefix_len = 0;
 
@@ -308,7 +309,7 @@ out:
 
 static int usage(const char *progname)
 {
-	fprintf(stderr, "Usage: %s [-n] [-i] -r <message>|-R <file>|-o <file>|-p <prefix>|-w\n", progname);
+	fprintf(stderr, "Usage: %s [-n] [-i] [-p prefix] -r <message>|-R <file>|-o <file>|-w\n", progname);
 	return 2;
 }
 
@@ -398,6 +399,9 @@ static int jshn_format_file(const char *path, bool no_newline, bool indent)
 
 int main(int argc, char **argv)
 {
+	int (*mode1)(const char *) = NULL;
+	int (*mode2)(bool, bool, FILE *) = NULL;
+	int (*mode3)(const char *, bool, bool) = NULL;
 	extern char **environ;
 	bool no_newline = false;
 	bool indent = false;
@@ -433,17 +437,28 @@ int main(int argc, char **argv)
 			var_prefix_len = strlen(var_prefix);
 			break;
 		case 'r':
-			ret = jshn_parse(optarg);
-			goto exit;
+			if (mode1 || mode2 || mode3)
+				break;
+			mode1 = jshn_parse;
+			opt = optarg;
+			break;
 		case 'R':
-			ret = jshn_parse_file(optarg);
-			goto exit;
+			if (mode1 || mode2 || mode3)
+				break;
+			mode1 = jshn_parse_file;
+			opt = optarg;
+			break;
 		case 'w':
-			ret = jshn_format(no_newline, indent, stdout);
-			goto exit;
+			if (mode1 || mode2 || mode3)
+				break;
+			mode2 = jshn_format;
+			break;
 		case 'o':
-			ret = jshn_format_file(optarg, no_newline, indent);
-			goto exit;
+			if (mode1 || mode2 || mode3)
+				break;
+			mode3 = jshn_format_file;
+			opt = optarg;
+			break;
 		case 'n':
 			no_newline = true;
 			break;
@@ -451,13 +466,19 @@ int main(int argc, char **argv)
 			indent = true;
 			break;
 		default:
-			free(vars);
-			return usage(argv[0]);
+			ret = usage(argv[0]);
+			goto exit;
 		}
 	}
 
-	free(vars);
-	return usage(argv[0]);
+	if (mode1)
+		ret = (*mode1)(opt);
+	else if (mode2)
+		ret = (*mode2)(no_newline, indent, stdout);
+	else if (mode3)
+		ret = (*mode3)(opt, no_newline, indent);
+	else
+		ret = usage(argv[0]);
 
 exit:
 	free(vars);

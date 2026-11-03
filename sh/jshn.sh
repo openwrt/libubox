@@ -9,7 +9,7 @@ _json_get_var() {
 _json_set_var() {
 	# var=$1
 	local ___val="$2"
-	eval "${JSON_PREFIX}$1=\"\$___val\""
+	eval "export -- ${JSON_PREFIX}$1=\"\$___val\""
 }
 
 __jshn_raw_append() {
@@ -23,7 +23,7 @@ __jshn_raw_append() {
 _jshn_append() {
 	# var=$1
 	local _a_value="$2"
-	eval "${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1}\${${JSON_PREFIX}$1:+ }\$_a_value\""
+	eval "export -- ${JSON_PREFIX}$1=\"\${${JSON_PREFIX}$1}\${${JSON_PREFIX}$1:+ }\$_a_value\""
 }
 
 _get_var() {
@@ -53,10 +53,10 @@ _json_add_generic() {
 
 	local var
 	if [ "${4%%[0-9]*}" = "J_A" ]; then
-		_json_inc "S_$4" var
+		_json_inc "S_$4" var && export -- "${JSON_PREFIX}S_$4"
 	else
 		var="${2//[^a-zA-Z0-9_]/_}"
-		[[ "$var" == "$2" ]] || export -- "${JSON_PREFIX}N_${4}_${var}=$2"
+		[ "$var" = "$2" ] || export -- "${JSON_PREFIX}N_${4}_${var}=$2"
 	fi
 
 	export -- \
@@ -104,7 +104,7 @@ json_cleanup() {
 	local unset tmp
 
 	_json_get_var unset JSON_UNSET
-	for tmp in $unset J_V; do
+	for tmp in $unset; do
 		unset \
 			${JSON_PREFIX}U_$tmp \
 			${JSON_PREFIX}K_$tmp \
@@ -115,17 +115,42 @@ json_cleanup() {
 	done
 
 	unset \
+		JSON_NONEWLINE \
+		JSON_INDENT \
 		${JSON_PREFIX}JSON_SEQ \
 		${JSON_PREFIX}JSON_CUR \
 		${JSON_PREFIX}JSON_UNSET
 }
 
+json_purge() {
+	local list p
+
+	unset JSON_PREFIX
+	_json_get_var list JSON_PREFIX_LIST
+	for p in $list ""; do
+		export JSON_PREFIX=$p
+		json_cleanup
+	done
+
+	unset JSON_PREFIX_LIST
+	unset JSON_PREFIX
+}
+
 json_init() {
 	json_cleanup
-	export -n ${JSON_PREFIX}JSON_SEQ=0
+
+	case "${JSON_PREFIX_LIST}" in
+		"${JSON_PREFIX}") ;;
+		"${JSON_PREFIX} "*) ;;
+		*" ${JSON_PREFIX}") ;;
+		*" ${JSON_PREFIX} "*) ;;
+		*) __jshn_raw_append JSON_PREFIX_LIST ${JSON_PREFIX} ;;
+	esac
+
 	export -- \
+		${JSON_PREFIX}JSON_SEQ=0 \
 		${JSON_PREFIX}JSON_CUR="J_V" \
-		${JSON_PREFIX}K_J_V=
+		${JSON_PREFIX}JSON_UNSET="J_V"
 }
 
 json_add_object() {
@@ -269,25 +294,25 @@ json_get_index() {
 # functions read access to json variables
 
 json_compact() {
-	JSON_NONEWLINE=1
-	JSON_INDENT=
+	export JSON_NONEWLINE=1
+	export JSON_INDENT=
 }
 
 json_pretty() {
-	JSON_NONEWLINE=
-	JSON_INDENT=1
+	export JSON_NONEWLINE=
+	export JSON_INDENT=1
 }
 
 json_load() {
-	eval "`jshn -r "$1"`"
+	eval "$(jshn -r "$1")"
 }
 
 json_load_file() {
-	eval "`jshn -R "$1"`"
+	eval "$(jshn -R "$1")"
 }
 
 json_dump() {
-	jshn "$@" ${JSON_PREFIX:+-p "$JSON_PREFIX"} ${JSON_NONEWLINE:+-n} ${JSON_INDENT:+-i} -w
+	jshn ${JSON_PREFIX:+-p "$JSON_PREFIX"} ${JSON_NONEWLINE:+-n} ${JSON_INDENT:+-i} "$@" -w
 }
 
 json_get_type() {
@@ -365,10 +390,11 @@ json_select() {
 		_json_set_var JSON_CUR "J_V"
 		return 0
 	}
-	[[ "$target" == ".." ]] && {
+	[ "$target" = ".." ] && {
 		_json_get_var cur JSON_CUR
 		_json_get_var cur "U_$cur"
 		_json_set_var JSON_CUR "$cur"
+		eval "[ -z \"\${${JSON_PREFIX}JSON_CUR}\" ]" && _json_set_var JSON_CUR "J_V"
 		return 0
 	}
 	json_get_type type "$target"
